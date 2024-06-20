@@ -15,12 +15,49 @@ local function learn_from_buffer(world, player)
 end
 
 local function player2player_via_buffer(world, player_from, player_to)
+    print("player2player_via_buffer")
     save_to_buffer(world, player_from)
     learn_from_buffer(world, player_to)
 end
 -- ************************ end of functions about mapdata update ************************ 
 
 
+-- ************************ Try to accelerate ************************ 
+
+require("networking")
+GLOBAL.SerializeUserSession = function (player, isnewspawn)
+    if player ~= nil and player.userid ~= nil and player.userid:len() > 0 and (player == GLOBAL.ThePlayer or GLOBAL.TheNet:GetIsServer()) then
+        --we don't care about references for player saves
+        local playerinfo--[[, refs]] = player:GetSaveRecord()
+        local data = GLOBAL.DataDumper(playerinfo, nil, GLOBAL.BRANCH ~= "dev")
+
+        local metadataStr = ""
+
+        if GLOBAL.TheNet:GetIsServer() then
+            local metadata = {
+                character = player.prefab,
+            }
+            metadataStr = GLOBAL.DataDumper(metadata, nil, GLOBAL.BRANCH ~= "dev")
+        end
+
+        -- TheNet:SerializeUserSession(player.userid, data, isnewspawn == true, player.player_classified ~= nil and player.player_classified.entity or nil, metadataStr)
+        print("in my SerializeUserSession")
+        if player.player_classified ~= nil and player.player_classified.entity then
+            print("player.player_classified.entity is not none")
+            local player_mapexplorer = player.player_classified.MapExplorer or nil
+            if player_mapexplorer ~= nil then
+                local mapdata = player_mapexplorer:RecordMap()
+                print("recorded mapdata during SerializeUserSession")
+                print(mapdata)
+                GLOBAL.TheSim:SetPersistentString("player_mapdata", mapdata, false)
+            end
+        end
+        -- TODO: can I call "save to buffer" here to avoid bug produced by ctrl+C?
+        -- save_to_buffer(GLOBAL.TheWorld, player)  -- This seems to bother the basic function. Do not use the shared buffer!
+        GLOBAL.TheNet:SerializeUserSession(player.userid, data, isnewspawn == true, nil, metadataStr)
+    end
+end
+-- ************************ End of Try to accelerate ************************ 
 
 -- ************************ add maprecorder to world as a buffer ************************
 AddPrefabPostInit("world", function(inst)
@@ -62,6 +99,7 @@ AddPrefabPostInit("world", function(inst)
         end
     
         self.mapdata = MapExplorer:RecordMap()
+        print("[Recorded map]", self.mapdata)
         self.mapsession = GLOBAL.TheWorld.meta.session_identifier
         self.maplocation = GLOBAL.TheWorld.worldprefab
         self.mapauthor = target.name
@@ -91,6 +129,9 @@ AddPrefabPostInit("world", function(inst)
             return
         end
         local result, description = maprecorder:TeachMap(player)
+        -- print the result and description
+        print("[keep trying teaching]result: ", result)
+        print("[keep trying teaching]description: ", description)
         if result == false then
             -- check is the description is "BLANK", if not, try again
             if description ~= "BLANK" then
@@ -101,6 +142,13 @@ AddPrefabPostInit("world", function(inst)
     end
 
     inst.components.maprecorder.KeepTryingTeach = KeepTryingTeach
+
+    local OnLoadPlayerMapdata = function(load_success, str)
+        if load_success == true then
+            inst.components.maprecorder.mapdata = str
+        end
+    end
+    GLOBAL.TheSim:GetPersistentString("player_mapdata", OnLoadPlayerMapdata)
 
 end)
 -- ************************ end of add maprecorder to world as a buffer ************************
