@@ -19,8 +19,8 @@ This mod is committed to solving this problem.
 
 ]]
 
-author = "clearlove, , rezecib, Sarcen, Niko, "
-version = "2.0.0"
+author = "clearlove, rezecib, Sarcen, Niko, "
+version = "2.0.1"
 
 api_version = 10
 

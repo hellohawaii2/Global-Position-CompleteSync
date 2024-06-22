@@ -38,13 +38,17 @@ local SHOWFIRES = FIREOPTIONS < 3
 local NEEDCHARCOAL = FIREOPTIONS == 2
 local SHOWFIREICONS = GetModConfigData("SHOWFIREICONS")
 local ENABLEPINGS = GetModConfigData("ENABLEPINGS")
+local valid_ping_actions = {}
 if ENABLEPINGS then --Only request loading of ping assets if pings are enabled
 	table.insert(PrefabFiles, "pings")
 	for _,ping in ipairs({"generic", "gohere", "explore", "danger", "omw"}) do
 		table.insert(Assets, Asset("IMAGE", "minimap/ping_"..ping..".tex"))
 		table.insert(Assets, Asset("ATLAS", "minimap/ping_"..ping..".xml"))
 		AddMinimapAtlas("minimap/ping_"..ping..".xml")
+        valid_ping_actions[ping] = true
 	end
+    valid_ping_actions.delete = true
+	valid_ping_actions.clear = true
 	for _,action in ipairs({"", "Danger", "Explore", "GoHere", "Omw", "Cancel", "Delete", "Clear"}) do
 		table.insert(Assets, Asset("IMAGE", "images/Ping"..action..".tex"))
 		table.insert(Assets, Asset("ATLAS", "images/Ping"..action..".xml"))
@@ -838,8 +842,13 @@ local ReceivePing = nil
 local ShowPingWheel = nil
 local HidePingWheel = nil
 local pings = {}
+local checknumber = GLOBAL.checknumber
 if ENABLEPINGS then
 	ReceivePing = function(player, pingtype, x, y, z)
+		-- Validate client input, because this could be arbitrary data of the wrong type or invalid prefabs
+		if not (valid_ping_actions[pingtype] and checknumber(x) and checknumber(y) and checknumber(z)) then
+			return
+		end
 		if pingtype == "delete" then
 			--Find the nearest ping and delete it (if it was actually somewhat close)
 			mindistsq, minping = math.huge, nil
@@ -861,7 +870,16 @@ if ENABLEPINGS then
 				ping:Remove()
 			end
 		else
-			local ping = GLOBAL.SpawnPrefab("ping_"..pingtype)
+            local prefab = "ping_"..pingtype
+			-- This check is really crucial, because otherwise the server will crash if the prefab doesn't exist.
+			-- SpawnPrefab also does some filtering on what prefabs can be spawned, specifically it seems to trim
+			-- everything after the first slash, so if a malicious client sends a pingtype of /deerclops,
+			-- it will literally spawn the Deerclops boss.
+			if not GLOBAL.PrefabExists(prefab) then
+				return
+			end
+
+			local ping = GLOBAL.SpawnPrefab(prefab)
 			ping.OnRemoveEntity = function(inst) pings[inst.GUID] = nil end
 			ping.parentuserid = player.userid
 			ping.Transform:SetPosition(x,y,z)
