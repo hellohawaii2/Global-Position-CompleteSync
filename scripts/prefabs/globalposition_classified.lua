@@ -26,7 +26,7 @@ local function fn()
 	
     inst.entity:SetPristine()
 	
-	if _GLOBALPOSITIONS_SHOWPLAYERINDICATORS then
+	if false then
 		inst:ListenForEvent("portraitdirty", UpdatePortrait)
 	end
     if not TheWorld.ismastersim then

@@ -18,16 +18,16 @@ local function AddGlobalIcon(inst, isplayer, classified)
 	classified:AddChild(classified.icon2)
 end
 
-local function AddMapRevealer(inst)
-	if not inst.components.maprevealer then
-		inst:AddComponent("maprevealer")
-	end
-	inst.components.maprevealer.revealperiod = 0.5
-	inst.components.maprevealer:Stop()
-	if _GLOBALPOSITIONS_SHAREMINIMAPPROGRESS then
-		inst.components.maprevealer:Start()
-	end
-end
+-- local function AddMapRevealer(inst)
+-- 	if not inst.components.maprevealer then
+-- 		inst:AddComponent("maprevealer")
+-- 	end
+-- 	inst.components.maprevealer.revealperiod = 0.5
+-- 	inst.components.maprevealer:Stop()
+-- 	if _GLOBALPOSITIONS_SHAREMINIMAPPROGRESS then
+-- 		inst.components.maprevealer:Start()
+-- 	end
+-- end
 
 local GlobalPosition = Class(function(self, inst)
     self.inst = inst
@@ -36,24 +36,24 @@ local GlobalPosition = Class(function(self, inst)
 	local isplayer = inst:HasTag("player")
 
 	if isplayer then
-		AddMapRevealer(inst)
-		self.respawnedfromghostfn = function()
-			self:SetMapSharing(_GLOBALPOSITIONS_SHAREMINIMAPPROGRESS)
-			self:PushPortraitDirty()
-		end
-		self.becameghostfn = function()
-			self:SetMapSharing(false)
-			self:PushPortraitDirty()
-		end
-		self.inst:ListenForEvent("ms_respawnedfromghost", self.respawnedfromghostfn)
-		self.inst:ListenForEvent("ms_becameghost", self.becameghostfn)
+		-- AddMapRevealer(inst)
+		-- self.respawnedfromghostfn = function()
+		-- 	self:SetMapSharing(_GLOBALPOSITIONS_SHAREMINIMAPPROGRESS)
+		-- 	self:PushPortraitDirty()
+		-- end
+		-- self.becameghostfn = function()
+		-- 	self:SetMapSharing(false)
+		-- 	self:PushPortraitDirty()
+		-- end
+		-- self.inst:ListenForEvent("ms_respawnedfromghost", self.respawnedfromghostfn)
+		-- self.inst:ListenForEvent("ms_becameghost", self.becameghostfn)
 	end
 	
 	self.inittask = self.inst:DoTaskInTime(0, function()
 		self.inittask = nil
 		self.globalpositions = TheWorld.net.components.globalpositions
 		self.classified = self.globalpositions:AddServerEntity(self.inst)
-		if ((isplayer and _GLOBALPOSITIONS_SHOWPLAYERICONS)
+		if ((isplayer and false)
 		or (not isplayer and (self.inst.prefab:find("ping_") or _GLOBALPOSITIONS_SHOWFIREICONS))) then
 			AddGlobalIcon(inst, isplayer, self.classified)
 		end
@@ -78,9 +78,9 @@ function GlobalPosition:OnRemoveEntity()
 		self.inst.MiniMapEntity:SetEnabled(true)
 	end
 	
-	if self.inst.components.maprevealer then
-		self:SetMapSharing(false)
-	end
+	-- if self.inst.components.maprevealer then
+	-- 	self:SetMapSharing(false)
+	-- end
 	
 	if self.respawnedfromghostfn then
 		self.inst:RemoveEventCallback("ms_respawnedfromghost", self.respawnedfromghostfn)
@@ -111,12 +111,12 @@ function GlobalPosition:PushPortraitDirty()
 	end)
 end
 
-function GlobalPosition:SetMapSharing(enabled)
-	if enabled then
-		self.inst.components.maprevealer:Start()
-	else
-		self.inst.components.maprevealer:Stop()
-	end
-end
+-- function GlobalPosition:SetMapSharing(enabled)
+-- 	if enabled then
+-- 		self.inst.components.maprevealer:Start()
+-- 	else
+-- 		self.inst.components.maprevealer:Stop()
+-- 	end
+-- end
 
 return GlobalPosition
