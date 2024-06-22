@@ -23,7 +23,7 @@ This mod adds the function of synchronizing the map based on the mod Global Posi
 ]]
 
 author = "clearlove, Niko"
-version = "1.0.2"
+version = "1.0.3"
 
 api_version = 10
 

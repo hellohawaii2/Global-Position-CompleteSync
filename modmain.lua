@@ -15,7 +15,6 @@ local function learn_from_buffer(world, player)
 end
 
 local function player2player_via_buffer(world, player_from, player_to)
-    print("player2player_via_buffer")
     save_to_buffer(world, player_from)
     learn_from_buffer(world, player_to)
 end
@@ -41,14 +40,10 @@ GLOBAL.SerializeUserSession = function (player, isnewspawn)
         end
 
         -- TheNet:SerializeUserSession(player.userid, data, isnewspawn == true, player.player_classified ~= nil and player.player_classified.entity or nil, metadataStr)
-        print("in my SerializeUserSession")
         if player.player_classified ~= nil and player.player_classified.entity then
-            print("player.player_classified.entity is not none")
             local player_mapexplorer = player.player_classified.MapExplorer or nil
             if player_mapexplorer ~= nil then
                 local mapdata = player_mapexplorer:RecordMap()
-                print("recorded mapdata during SerializeUserSession")
-                print(mapdata)
                 GLOBAL.TheSim:SetPersistentString("player_mapdata", mapdata, false)
             end
         end
@@ -99,7 +94,6 @@ AddPrefabPostInit("world", function(inst)
         end
     
         self.mapdata = MapExplorer:RecordMap()
-        print("[Recorded map]", self.mapdata)
         self.mapsession = GLOBAL.TheWorld.meta.session_identifier
         self.maplocation = GLOBAL.TheWorld.worldprefab
         self.mapauthor = target.name
@@ -129,9 +123,6 @@ AddPrefabPostInit("world", function(inst)
             return
         end
         local result, description = maprecorder:TeachMap(player)
-        -- print the result and description
-        print("[keep trying teaching]result: ", result)
-        print("[keep trying teaching]description: ", description)
         if result == false then
             -- check is the description is "BLANK", if not, try again
             if description ~= "BLANK" then
