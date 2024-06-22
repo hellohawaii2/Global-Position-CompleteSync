@@ -84,7 +84,9 @@ end
 
 
 -- ************************ Try to accelerate ************************ 
-
+local is_dedicated = GLOBAL.TheNet:IsDedicated()
+local STOPSAVEMAPEXPLORER = GetModConfigData("STOPSAVEMAPEXPLORER") and is_dedicated
+if STOPSAVEMAPEXPLORER then
 require("networking")
 GLOBAL.SerializeUserSession = function (player, isnewspawn)
     if player ~= nil and player.userid ~= nil and player.userid:len() > 0 and (player == GLOBAL.ThePlayer or GLOBAL.TheNet:GetIsServer()) then
@@ -113,6 +115,7 @@ GLOBAL.SerializeUserSession = function (player, isnewspawn)
         -- save_to_buffer(GLOBAL.TheWorld, player)  -- This seems to bother the basic function. Do not use the shared buffer!
         GLOBAL.TheNet:SerializeUserSession(player.userid, data, isnewspawn == true, nil, metadataStr)
     end
+end
 end
 -- ************************ End of Try to accelerate ************************ 
 
@@ -384,9 +387,9 @@ if NETWORKPLAYERPOSITIONS then
 	end)
 
 	AddSimPostInit(function()
-		print("checking state and time")
-		print(GLOBAL.TheWorld.state.time)
-		print(GLOBAL.TheWorld.state.cycles)
+		-- print("checking state and time")
+		-- print(GLOBAL.TheWorld.state.time)
+		-- print(GLOBAL.TheWorld.state.cycles)
 		if GLOBAL.TheWorld.state.time < 0.01 and GLOBAL.TheWorld.state.cycles < 1 then
 			GLOBAL.world_is_newly_created = true
 		end
@@ -1068,97 +1071,6 @@ AddClassPostConstruct("screens/mapscreen", function(MapScreen)
 		end
 	end
 end)
-
---[[ Patch the scoreboard to add a button and RPC for disable location sharing ]]--
-if NETWORKPLAYERPOSITIONS then --Don't bother unless positions are actually being networked
-	local ImageButton = require("widgets/imagebutton")
-	-- First we need to make the mod RPC that the clients will send to stop sharing their location
-	local function SetLocationSharing(player, is_sharing)
-		if is_sharing and player.components.globalposition == nil then
-			--they want to share, and aren't sharing already
-			player:AddComponent("globalposition")
-		else
-			if player.components.globalposition then
-				-- make sure they do have it before trying to remove it
-				player:RemoveComponent("globalposition")
-			end
-		end
-	end
-	AddModRPCHandler(modname, "ShareLocation", SetLocationSharing)
-
-	local is_sharing = true --keep track locally of whether we're sharing or not
-	-- why does GUI code have to be so long....................
-	local PlayerStatusScreen = require("screens/playerstatusscreen")
-	local OldDoInit = PlayerStatusScreen.DoInit
-	function PlayerStatusScreen:DoInit(ClientObjs, ...)
-		OldDoInit(self, ClientObjs, ...)
-		if not self.scroll_list.old_updatefn then -- if we haven't already patched the widgets
-			for i,playerListing in pairs(self.scroll_list.static_widgets) do
-				local un = is_sharing and "" or "un"
-				playerListing.shareloc = playerListing:AddChild(ImageButton("images/"..un.."sharelocation.xml",
-				 un.."sharelocation.tex", un.."sharelocation.tex",
-				 un.."sharelocation.tex", un.."sharelocation.tex",
-				 nil, {1,1}, {0,0}))
-				--TODO: keep up-to-date with playerstatusscreen's mute; note repositioning that happens later
-				playerListing.shareloc:SetPosition(92, 3, 0)
-				playerListing.shareloc.scale_on_focus = false
-				local lang = GLOBAL.LanguageTranslator.defaultlang or 'en'
-                local CH = lang == 'zh' or lang == 'zht'
-				local english_hover_txt = (is_sharing and "Uns" or "S").."hare Location"
-				local chinese_hover_txt = (is_sharing and "取消" or "开始").."于其他用户分享我的位置"
-				playerListing.shareloc:SetHoverText(CH and chinese_hover_txt or english_hover_txt, { font = GLOBAL.NEWFONT_OUTLINE, size = 24, offset_x = 0, offset_y = 30, colour = {1,1,1,1}})
-				tint = is_sharing and {1,1,1,1} or {242/255, 99/255, 99/255, 255/255}
-				playerListing.shareloc.image:SetTint(GLOBAL.unpack(tint))
-				local gainfocusfn = playerListing.shareloc.OnGainFocus
-				playerListing.shareloc.OnGainFocus = function()
-					gainfocusfn(playerListing.shareloc)
-					GLOBAL.TheFrontEnd:GetSound():PlaySound("dontstarve/HUD/click_mouseover")
-					playerListing.shareloc.image:SetScale(1.1)
-				end
-				local losefocusfn = playerListing.shareloc.OnLoseFocus
-				playerListing.shareloc.OnLoseFocus = function()
-					losefocusfn(playerListing.shareloc)
-					playerListing.shareloc.image:SetScale(1)
-				end
-				playerListing.shareloc:SetOnClick(function()
-					is_sharing = not is_sharing
-					local un = is_sharing and "" or "un"
-					playerListing.shareloc.image_focus = un.."shareLocation.tex"
-					playerListing.shareloc.image:SetTexture("images/"..un.."sharelocation.xml", un.."sharelocation.tex")
-					playerListing.shareloc:SetTextures("images/"..un.."sharelocation.xml", un.."shareLocation.tex")
-					local english_hover_txt = (is_sharing and "Uns" or "S").."hare Location"
-					local chinese_hover_txt = (is_sharing and "取消" or "开始").."于其他用户分享我的位置"
-					playerListing.shareloc:SetHoverText(CH and chinese_hover_txt or english_hover_txt)
-					tint = is_sharing and {1,1,1,1} or {242/255, 99/255, 99/255, 255/255}
-					playerListing.shareloc.image:SetTint(GLOBAL.unpack(tint))
-					
-					SendModRPCToServer(MOD_RPC[modname]["ShareLocation"], is_sharing)
-				end)
-				
-				if playerListing.userid == self.owner.userid then
-					playerListing.viewprofile:SetFocusChangeDir(GLOBAL.MOVE_RIGHT, playerListing.shareloc)
-					playerListing.shareloc:SetFocusChangeDir(GLOBAL.MOVE_LEFT, playerListing.viewprofile)
-				else
-					playerListing.shareloc:Hide()
-				end
-			end
-			
-			self.scroll_list.old_updatefn = self.scroll_list.updatefn
-			self.scroll_list.updatefn = function(playerListing, client, ...)
-				self.scroll_list.old_updatefn(playerListing, client, ...)
-				if client.userid == self.owner.userid then
-					--TODO: keep up-to-date with playerstatusscreen's mute; note repositioning that happens later
-					playerListing.shareloc:SetPosition(92, 3, 0)
-					playerListing.viewprofile:SetFocusChangeDir(GLOBAL.MOVE_RIGHT, playerListing.shareloc)
-					playerListing.shareloc:SetFocusChangeDir(GLOBAL.MOVE_LEFT, playerListing.viewprofile)
-					playerListing.shareloc:Show()
-				else
-					playerListing.shareloc:Hide()
-				end			
-			end
-		end
-	end
-end
 
 --[[ Capture nonstandard minimap icons for mod characters ]]--
 --#rezecib code from Global Player Icons, by Sarcen (also see prefabs/globalplayericon.lua)

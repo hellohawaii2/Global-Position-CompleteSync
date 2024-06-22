@@ -1,5 +1,5 @@
 local CH = locale == "zh" or locale == "zhr"
-name = CH and "(debug)全图定位(完全同步)" or "(debug)Global Positions (CompleteSync)"
+name = CH and "全图定位(完全同步)" or "Global Positions (CompleteSync)"
 description = CH and 
 [[之前的全图定位模组，各个玩家之间的地图并不能完全同步，例如以下场景：
 1. 玩家刚刚加入游戏，地图上的其他玩家已经探索了很多地方，但是新加入的玩家并不能看到其他玩家在他加入之前所探索的地方。
@@ -7,8 +7,6 @@ description = CH and
 3. 玩家阅读了寄居蟹隐士的瓶中信，其他玩家并不会像玩家A一样更新地图。
 
 本模组致力于解决这个问题。
-
-本模组基于模组Global Positions -Remapped添加了同步地图的功能。和该模组一样，本模组同样没有在地图上做标记的功能。如果你有做标记的需求，考虑使用Global Pings模组。
 ]]
 or 
 [[
@@ -19,11 +17,10 @@ The previous Global Positions mod, the maps between players are not completely s
 
 This mod is committed to solving this problem. 
 
-This mod adds the function of synchronizing the map based on the mod Global Positions -Remapped. Like that mod, this mod also does not have the function of pings on the map. If you have the need to mark on the map, consider using the Global Pings mod.
 ]]
 
-author = "clearlove, Niko"
-version = "1.0.3"
+author = "clearlove, , rezecib, Sarcen, Niko, "
+version = "2.0.0"
 
 api_version = 10
 
