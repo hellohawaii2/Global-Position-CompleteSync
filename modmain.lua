@@ -81,6 +81,8 @@ local function learn_from_buffer(world, player)
 end
 
 local function player2player_via_buffer(world, player_from, player_to)
+    -- TODO: when rolling back, perhaps multiple player will be spawned at the same time? Do I need to add a lock
+    -- to the buffer?
     save_to_buffer(world, player_from)
     learn_from_buffer(world, player_to)
 end
@@ -202,6 +204,14 @@ AddPrefabPostInit("world", function(inst)
     end
 
     inst.components.maprecorder.KeepTryingTeach = KeepTryingTeach
+
+    local old_maprecorder_onsave = inst.components.maprecorder.OnSave
+    inst.components.maprecorder.OnSave = function(...)
+        if GLOBAL.AllPlayers[1]~=nil then
+            save_to_buffer(inst, GLOBAL.AllPlayers[1])
+        end
+        return old_maprecorder_onsave(...)
+    end
 
     local OnLoadPlayerMapdata = function(load_success, str)
         if load_success == true then
@@ -332,9 +342,15 @@ AddComponentPostInit("mapspotrevealer", function(self)
 
             -- my add, reveal others map, this have some overhead.
             for i, v in ipairs(GLOBAL.AllPlayers) do
-                doer:DoTaskInTime(1, function()
-                    player2player_via_buffer(GLOBAL.TheWorld, doer, v)
-                end)
+                -- print("revealing "..v.userid)
+                -- doer:DoTaskInTime(1, function()
+                --     player2player_via_buffer(GLOBAL.TheWorld, doer, v)
+                -- end)
+				if v~=nil and v.player_classified~=nil and v.player_classified.MapExplorer~=nil then
+					v:DoStaticTaskInTime(4*FRAMES, function()
+						v.player_classified.MapExplorer:RevealArea(x, y, z, true, true)
+					end)
+				end
             end
 
         else
