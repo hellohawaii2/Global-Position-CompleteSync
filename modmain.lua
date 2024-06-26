@@ -285,6 +285,7 @@ AddPlayerPostInit(function(inst)
         inst.entity:SetCanSleep(false)
 
         inst:AddComponent("maprevealer")
+        inst.components.maprevealer.revealperiod = 0.5
     end
 
     if not GLOBAL.TheNet:IsDedicated() then
