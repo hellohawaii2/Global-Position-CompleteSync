@@ -262,11 +262,12 @@ end)
 -- ************************ end of build event handler ************************
 
 -- ************************ The orginal codes  of GLOBAL POSITION(REMAPPED) ************************
+local oldmaxrange = GLOBAL.TUNING.MAX_INDICATOR_RANGE
 local function NewShouldTrackfn(inst, viewer)
     return  inst:IsValid() and
         not inst:HasTag("noplayerindicator") and
         not inst:HasTag("hiding") and
-        inst:IsNear(viewer, TUNING.MAX_INDICATOR_RANGE * 1.5) and -- Originally checks inst:IsNear(inst, max_range), What's the point of that?
+        inst:IsNear(viewer, oldmaxrange * 1.5) and -- Originally checks inst:IsNear(inst, max_range), What's the point of that?
         not inst.entity:FrustumCheck() and
         GLOBAL.CanEntitySeeTarget(viewer, inst)
 end

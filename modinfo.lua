@@ -20,7 +20,7 @@ This mod is committed to solving this problem.
 ]]
 
 author = "clearlove, rezecib, Sarcen, Niko, "
-version = "2.0.2"
+version = "2.0.3"
 
 api_version = 10
 
