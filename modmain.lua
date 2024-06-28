@@ -75,7 +75,8 @@ local function save_to_buffer(world, player)
 end
 
 local function learn_from_buffer(world, player)
-    player:AddTag("is_learning_from_buffer")
+    -- player:AddTag("is_learning_from_buffer")
+    player.is_learning_from_buffer = true
     local maprecorder = world.components.maprecorder
     local result, description = maprecorder:KeepTryingTeach(player)
     -- maprecorder.inst.DoTaskInTime(maprecorder, 0, maprecorder.TeachMap, player)
@@ -190,7 +191,8 @@ AddPrefabPostInit("world", function(inst)
         count = count + 1
         if count > 30 then
             print("[global position (CompleteSync)]Wrong! Tried 30 times, but still failed to teach map to player")
-            inst:RemoveTag("is_learning_from_buffer")
+            -- inst:RemoveTag("is_learning_from_buffer")
+            player.is_learning_from_buffer = false
             return
         end
         local result, description = maprecorder:TeachMap(player)
@@ -199,10 +201,12 @@ AddPrefabPostInit("world", function(inst)
             if description ~= "BLANK" then
                 maprecorder.inst.DoTaskInTime(maprecorder, 1, KeepTryingTeach, player, count)
             else
-                inst:RemoveTag("is_learning_from_buffer")
+                -- inst:RemoveTag("is_learning_from_buffer")
+                player.is_learning_from_buffer = false
             end
         else
-            inst:RemoveTag("is_learning_from_buffer")
+            -- inst:RemoveTag("is_learning_from_buffer")
+            player.is_learning_from_buffer = false
         end
     end
 
@@ -240,7 +244,8 @@ AddPrefabPostInit("world", function(inst)
             for i, v in ipairs(GLOBAL.AllPlayers) do
                 if v.userid == player.userid then
                     -- continue
-                elseif v:HasTag("is_learning_from_buffer") then
+                -- elseif v:HasTag("is_learning_from_buffer") then
+                elseif v.is_learning_from_buffer then
                     -- continue
                     -- print("[GLOBAL POSITION(CompleteSync)] An exception happen, please leave a comment in the workshop page if you see this line")
                 else
