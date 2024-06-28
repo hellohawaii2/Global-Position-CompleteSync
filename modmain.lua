@@ -75,14 +75,13 @@ local function save_to_buffer(world, player)
 end
 
 local function learn_from_buffer(world, player)
+    player:AddTag("is_learning_from_buffer")
     local maprecorder = world.components.maprecorder
     local result, description = maprecorder:KeepTryingTeach(player)
     -- maprecorder.inst.DoTaskInTime(maprecorder, 0, maprecorder.TeachMap, player)
 end
 
 local function player2player_via_buffer(world, player_from, player_to)
-    -- TODO: when rolling back, perhaps multiple player will be spawned at the same time? Do I need to add a lock
-    -- to the buffer?
     save_to_buffer(world, player_from)
     learn_from_buffer(world, player_to)
 end
@@ -191,6 +190,7 @@ AddPrefabPostInit("world", function(inst)
         count = count + 1
         if count > 30 then
             print("[global position (CompleteSync)]Wrong! Tried 30 times, but still failed to teach map to player")
+            inst:RemoveTag("is_learning_from_buffer")
             return
         end
         local result, description = maprecorder:TeachMap(player)
@@ -198,8 +198,11 @@ AddPrefabPostInit("world", function(inst)
             -- check is the description is "BLANK", if not, try again
             if description ~= "BLANK" then
                 maprecorder.inst.DoTaskInTime(maprecorder, 1, KeepTryingTeach, player, count)
+            else
+                inst:RemoveTag("is_learning_from_buffer")
             end
         else
+            inst:RemoveTag("is_learning_from_buffer")
         end
     end
 
@@ -237,11 +240,15 @@ AddPrefabPostInit("world", function(inst)
             for i, v in ipairs(GLOBAL.AllPlayers) do
                 if v.userid == player.userid then
                     -- continue
+                elseif v:HasTag("is_learning_from_buffer") then
+                    -- continue
+                    -- print("[GLOBAL POSITION(CompleteSync)] An exception happen, please leave a comment in the workshop page if you see this line")
                 else
                     player2player_via_buffer(world, v, player)
                     return
                 end
             end
+            learn_from_buffer(world, player)
         end
     end
     inst:ListenForEvent("ms_playerspawn", OnMyPlayerSpawn, GLOBAL.TheWorld)
