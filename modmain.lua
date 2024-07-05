@@ -289,8 +289,8 @@ AddPlayerPostInit(function(inst)
     if GLOBAL.TheWorld.ismastersim then
         inst.icon = GLOBAL.SpawnPrefab("globalmapicon")
         if not inst:HasTag("playerghost") then
-            inst.icon.MiniMapEntity:SetIsFogRevealer(true)
-            inst.icon:AddTag("fogrevealer")
+            -- inst.icon.MiniMapEntity:SetIsFogRevealer(true)
+            -- inst.icon:AddTag("fogrevealer")
         end
         inst.icon:TrackEntity(inst)
 
@@ -304,8 +304,15 @@ AddPlayerPostInit(function(inst)
         inst.components.hudindicatable:SetShouldTrackFunction(NewShouldTrackfn)
     end
 
-    local OnDeath = function() inst.icon.MiniMapEntity:SetIsFogRevealer(false) inst.icon:RemoveTag("fogrevealer") inst.components.maprevealer:Stop() end
-    local OnRespawn = function() inst.icon.MiniMapEntity:SetIsFogRevealer(true) inst.icon:AddTag("fogrevealer") inst.components.maprevealer:Start() end
+    local OnDeath = function() 
+		-- 不知道为什么注释掉这个我遇到merge data失败的错误，啥情况。
+        -- inst.icon.MiniMapEntity:SetIsFogRevealer(false) inst.icon:RemoveTag("fogrevealer") 
+        -- inst.components.maprevealer:Stop() 
+    end
+    local OnRespawn = function()
+        -- inst.icon.MiniMapEntity:SetIsFogRevealer(true) inst.icon:AddTag("fogrevealer") 
+        inst.components.maprevealer:Start()
+     end
 
     inst:ListenForEvent("ms_becameghost", OnDeath)
     inst:ListenForEvent("ms_respawnedfromghost", OnRespawn)
