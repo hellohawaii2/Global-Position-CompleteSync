@@ -114,6 +114,7 @@ GLOBAL.SerializeUserSession = function (player, isnewspawn)
         if player.player_classified ~= nil and player.player_classified.entity then
             local player_mapexplorer = player.player_classified.MapExplorer or nil
             if player_mapexplorer ~= nil then
+				print("[global position (CompleteSync)] In my SerializeUserSession, record map")
                 local mapdata = player_mapexplorer:RecordMap()
                 GLOBAL.TheSim:SetPersistentString("player_mapdata", mapdata, false)
             end
@@ -146,7 +147,7 @@ AddPrefabPostInit("world", function(inst)
         if MapExplorer == nil then
             return false, "NOEXPLORER"
         end
-    
+		
         if not MapExplorer:LearnRecordedMap(self.mapdata) then
             return false, "I don not quite understand what this mean"
         end
@@ -178,6 +179,7 @@ AddPrefabPostInit("world", function(inst)
         end
     
         --Something went wrong, invalid data, so just clear it
+		print("[global position (CompleteSync)]Something went wrong, invalid data, so just clear it")
         self:ClearMap()
         return false, "BLANK"
     end
@@ -194,23 +196,27 @@ AddPrefabPostInit("world", function(inst)
             print("[global position (CompleteSync)]Wrong! Tried 30 times, but still failed to teach map to player")
             -- inst:RemoveTag("is_learning_from_buffer")
             player.is_learning_from_buffer = false
+			player.success_to_learn_map = false
             return
         end
         local result, description = maprecorder:TeachMap(player)
         if result == false then
             -- check is the description is "BLANK", if not, try again
             if description ~= "BLANK" then
-				print("[global position (CompleteSync)] failed"..description)
+				print("[global position (CompleteSync)] failed "..description)
                 maprecorder.inst.DoTaskInTime(maprecorder, 1, KeepTryingTeach, player, count)
             else
                 -- inst:RemoveTag("is_learning_from_buffer")
-				print("[global position (CompleteSync)] failed"..description)
+				print("[global position (CompleteSync)] failed "..description)
                 player.is_learning_from_buffer = false
+				player.success_to_learn_map = true
             end
         else
             -- inst:RemoveTag("is_learning_from_buffer")
 			print("[global position (CompleteSync)] succeed")
             player.is_learning_from_buffer = false
+			player.success_to_learn_map = true
+			-- maprecorder.inst.DoTaskInTime(maprecorder, 0, KeepTryingTeach, player, count)
         end
     end
 
@@ -249,7 +255,7 @@ AddPrefabPostInit("world", function(inst)
                 if v.userid == player.userid then
                     -- continue
                 -- elseif v:HasTag("is_learning_from_buffer") then
-                elseif v.is_learning_from_buffer then
+                elseif v.is_learning_from_buffer or (not v.success_to_learn_map) then
                     -- continue
                     -- print("[GLOBAL POSITION(CompleteSync)] An exception happen, please leave a comment in the workshop page if you see this line")
                 else
@@ -263,13 +269,31 @@ AddPrefabPostInit("world", function(inst)
     inst:ListenForEvent("ms_playerjoined", OnMyPlayerJoined, GLOBAL.TheWorld)
 
     local OnMyPlayerDespawn = function(world, player)
-        save_to_buffer(world, player)
+		if not player.success_to_learn_map then
+			print("[global position (CompleteSync)]Player failed to learn map data. so not save to buffer.")
+			data.player.success_to_learn_map = false
+			return
+		else
+        	save_to_buffer(world, player)
+		end
     end
     local OnMyPlayerDespawnAndDelete = function(world, player)
-        save_to_buffer(world, player)
+		if not player.success_to_learn_map then
+			print("[global position (CompleteSync)]Player failed to learn map data. so not save to buffer.")
+			data.player.success_to_learn_map = false
+			return
+		else
+        	save_to_buffer(world, player)
+		end
     end
     local OnMyPlayerDespawnAndMigrate = function(world, data)
-        save_to_buffer(world, data.player)
+		if not data.player.success_to_learn_map then
+			print("[global position (CompleteSync)]Player failed to learn map data. so not save to buffer.")
+			data.player.success_to_learn_map = false
+			return
+		else
+        	save_to_buffer(world, data.player)
+		end
     end
     inst:ListenForEvent("ms_playerdespawn", OnMyPlayerDespawn, GLOBAL.TheWorld)
     inst:ListenForEvent("ms_playerdespawnanddelete", OnMyPlayerDespawnAndDelete, GLOBAL.TheWorld)
