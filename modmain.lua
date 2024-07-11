@@ -95,6 +95,7 @@ local STOPSAVEMAPEXPLORER = GetModConfigData("STOPSAVEMAPEXPLORER") and is_dedic
 if STOPSAVEMAPEXPLORER then
 require("networking")
 GLOBAL.SerializeUserSession = function (player, isnewspawn)
+	-- print("[global position (CompleteSync)]In my SerializeUserSession")
     if player ~= nil and player.userid ~= nil and player.userid:len() > 0 and (player == GLOBAL.ThePlayer or GLOBAL.TheNet:GetIsServer()) then
         --we don't care about references for player saves
         local playerinfo--[[, refs]] = player:GetSaveRecord()
@@ -199,13 +200,16 @@ AddPrefabPostInit("world", function(inst)
         if result == false then
             -- check is the description is "BLANK", if not, try again
             if description ~= "BLANK" then
+				print("[global position (CompleteSync)] failed"..description)
                 maprecorder.inst.DoTaskInTime(maprecorder, 1, KeepTryingTeach, player, count)
             else
                 -- inst:RemoveTag("is_learning_from_buffer")
+				print("[global position (CompleteSync)] failed"..description)
                 player.is_learning_from_buffer = false
             end
         else
             -- inst:RemoveTag("is_learning_from_buffer")
+			print("[global position (CompleteSync)] succeed")
             player.is_learning_from_buffer = false
         end
     end
@@ -235,7 +239,7 @@ end)
 AddPrefabPostInit("world", function(inst)
     -- TODO: the gap between str and map data should be resolved.
     -- TODO2: how about the migrate event?
-    local OnMyPlayerSpawn = function(world, player)
+    local OnMyPlayerJoined = function(world, player)
         -- If empty world, learn from recorded data.
         local maprecorder = world.components.maprecorder
         if #GLOBAL.AllPlayers == 1 then
@@ -256,7 +260,7 @@ AddPrefabPostInit("world", function(inst)
             learn_from_buffer(world, player)
         end
     end
-    inst:ListenForEvent("ms_playerspawn", OnMyPlayerSpawn, GLOBAL.TheWorld)
+    inst:ListenForEvent("ms_playerjoined", OnMyPlayerJoined, GLOBAL.TheWorld)
 
     local OnMyPlayerDespawn = function(world, player)
         save_to_buffer(world, player)
@@ -297,7 +301,9 @@ AddPlayerPostInit(function(inst)
         inst.entity:SetCanSleep(false)
 
         inst:AddComponent("maprevealer")
-        inst.components.maprevealer.revealperiod = 0.5
+		if inst.prefab == "willow" then
+        	inst.components.maprevealer.revealperiod = 0.5
+		end
     end
 
     if not GLOBAL.TheNet:IsDedicated() then
@@ -307,7 +313,7 @@ AddPlayerPostInit(function(inst)
     local OnDeath = function() 
 		-- 不知道为什么注释掉这个我遇到merge data失败的错误，啥情况。
         -- inst.icon.MiniMapEntity:SetIsFogRevealer(false) inst.icon:RemoveTag("fogrevealer") 
-        -- inst.components.maprevealer:Stop() 
+        inst.components.maprevealer:Stop() 
     end
     local OnRespawn = function()
         -- inst.icon.MiniMapEntity:SetIsFogRevealer(true) inst.icon:AddTag("fogrevealer") 

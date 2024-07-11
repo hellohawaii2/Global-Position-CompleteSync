@@ -1,5 +1,5 @@
 local CH = locale == "zh" or locale == "zhr"
-name = CH and "0629全图定位(完全同步)" or "0629Global Positions (CompleteSync)"
+name = CH and "全图定位(完全同步)(beta)" or "Global Positions (CompleteSync)(beta)"
 description = CH and 
 [[之前的全图定位模组，各个玩家之间的地图并不能完全同步，例如以下场景：
 1. 玩家刚刚加入游戏，地图上的其他玩家已经探索了很多地方，但是新加入的玩家并不能看到其他玩家在他加入之前所探索的地方。
@@ -20,7 +20,7 @@ This mod is committed to solving this problem.
 ]]
 
 author = "clearlove, rezecib, Sarcen, Niko, "
-version = "2.0.6"
+version = "2.1.0"
 
 api_version = 10
 
