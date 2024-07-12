@@ -86,6 +86,13 @@ local function player2player_via_buffer(world, player_from, player_to)
     save_to_buffer(world, player_from)
     learn_from_buffer(world, player_to)
 end
+
+local function handleClientPlayerJoined(player)
+	print("[global position (CompleteSync)] before RPC, the player.client_is_ready is "..tostring(player.client_is_ready))
+	player.client_is_ready = true
+end
+local modname = "globalpositioncompletesync"
+AddModRPCHandler(modname, "ClientPlayerJoined", handleClientPlayerJoined)
 -- ************************ end of functions about mapdata update ************************ 
 
 
@@ -192,13 +199,19 @@ AddPrefabPostInit("world", function(inst)
             count = 0
         end
         count = count + 1
-        if count > 30 then
-            print("[global position (CompleteSync)]Wrong! Tried 30 times, but still failed to teach map to player")
+        if count > 60 then
+            print("[global position (CompleteSync)]Wrong! Tried 60 times, but still failed to teach map to player")
             -- inst:RemoveTag("is_learning_from_buffer")
             player.is_learning_from_buffer = false
 			player.success_to_learn_map = false
             return
         end
+		if not player.client_is_ready then
+			print("[global position (CompleteSync)]Client is not ready, waiting")
+			-- local result, description = maprecorder:TeachMap(player)  -- I hope this can cause a merge error
+			maprecorder.inst.DoTaskInTime(maprecorder, 1, KeepTryingTeach, player, count)
+			return
+		end
         local result, description = maprecorder:TeachMap(player)
         if result == false then
             -- check is the description is "BLANK", if not, try again
@@ -268,10 +281,23 @@ AddPrefabPostInit("world", function(inst)
     end
     inst:ListenForEvent("ms_playerjoined", OnMyPlayerJoined, GLOBAL.TheWorld)
 
+
+	local OnMyPlayerActivated = function(world, player)
+		if not GLOBAL.TheNet:GetIsServer() then
+			-- if player.userid == GLOBAL.ThePlayer.userid then
+			print("[global position (CompleteSync)] sending RPC")
+			SendModRPCToServer(GetModRPC(modname, "ClientPlayerJoined"))
+			-- end
+		else
+			print("[global position (CompleteSync)] server also got activated event, but do nothing.")
+		end
+	end
+	inst:ListenForEvent("playeractivated", OnMyPlayerActivated, GLOBAL.TheWorld)
+
     local OnMyPlayerDespawn = function(world, player)
 		if not player.success_to_learn_map then
 			print("[global position (CompleteSync)]Player failed to learn map data. so not save to buffer.")
-			data.player.success_to_learn_map = false
+			player.success_to_learn_map = false
 			return
 		else
         	save_to_buffer(world, player)
@@ -280,7 +306,7 @@ AddPrefabPostInit("world", function(inst)
     local OnMyPlayerDespawnAndDelete = function(world, player)
 		if not player.success_to_learn_map then
 			print("[global position (CompleteSync)]Player failed to learn map data. so not save to buffer.")
-			data.player.success_to_learn_map = false
+			player.success_to_learn_map = false
 			return
 		else
         	save_to_buffer(world, player)
