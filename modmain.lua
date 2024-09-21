@@ -70,11 +70,21 @@ GLOBAL.world_is_newly_created = false
 
 -- ************************ Functions about mapdata update************************ 
 local function save_to_buffer(world, player)
+	print("[global position (CompleteSync)] saving to buffer")
     local maprecorder = world.components.maprecorder
+	maprecorder.is_recording = true
     local result, description = maprecorder:RecordMap(player)
+	if result then
+		print("[global position (CompleteSync)] success to saving to buffer")
+	else
+		print("[global position (CompleteSync)] failed to saving to buffer")
+		print(description)
+	end
+	maprecorder.is_recording = false
 end
 
 local function learn_from_buffer(world, player)
+	print("[global position (CompleteSync)] learning from buffer")
     -- player:AddTag("is_learning_from_buffer")
     player.is_learning_from_buffer = true
     local maprecorder = world.components.maprecorder
@@ -118,14 +128,15 @@ GLOBAL.SerializeUserSession = function (player, isnewspawn)
         end
 
         -- TheNet:SerializeUserSession(player.userid, data, isnewspawn == true, player.player_classified ~= nil and player.player_classified.entity or nil, metadataStr)
-        if player.player_classified ~= nil and player.player_classified.entity then
-            local player_mapexplorer = player.player_classified.MapExplorer or nil
-            if player_mapexplorer ~= nil then
-				print("[global position (CompleteSync)] In my SerializeUserSession, record map")
-                local mapdata = player_mapexplorer:RecordMap()
-                GLOBAL.TheSim:SetPersistentString("player_mapdata", mapdata, false)
-            end
-        end
+        -- if player.player_classified ~= nil and player.player_classified.entity then
+        --     local player_mapexplorer = player.player_classified.MapExplorer or nil
+        --     if player_mapexplorer ~= nil then
+		-- 		print("[global position (CompleteSync)] In my SerializeUserSession, record map")
+        --         local mapdata = player_mapexplorer:RecordMap()
+		-- 		print(mapdata)
+        --         GLOBAL.TheSim:SetPersistentString("player_mapdata", mapdata, false)
+        --     end
+        -- end
         -- TODO: can I call "save to buffer" here to avoid bug produced by ctrl+C?
         -- save_to_buffer(GLOBAL.TheWorld, player)  -- This seems to bother the basic function. Do not use the shared buffer!
         GLOBAL.TheNet:SerializeUserSession(player.userid, data, isnewspawn == true, nil, metadataStr)
@@ -212,6 +223,12 @@ AddPrefabPostInit("world", function(inst)
 			maprecorder.inst.DoTaskInTime(maprecorder, 1, KeepTryingTeach, player, count)
 			return
 		end
+		if maprecorder.is_recording then
+			print("[global position (CompleteSync)]the buffer is being written to, waiting. Please leave a comment in the workshop page if you see this line")
+			print("[global position (CompleteSync)]在学习地图时，地图正在被写入，我怀疑这是导致地图丢失的bug所在。如果你发现了这一条，请在创意工坊留言")
+			maprecorder.inst.DoTaskInTime(maprecorder, 1, KeepTryingTeach, player, count)
+			return
+		end
         local result, description = maprecorder:TeachMap(player)
         if result == false then
             -- check is the description is "BLANK", if not, try again
@@ -237,18 +254,32 @@ AddPrefabPostInit("world", function(inst)
 
     local old_maprecorder_onsave = inst.components.maprecorder.OnSave
     inst.components.maprecorder.OnSave = function(...)
-        if GLOBAL.AllPlayers[1]~=nil then
-            save_to_buffer(inst, GLOBAL.AllPlayers[1])
-        end
+        -- if GLOBAL.AllPlayers[1]~=nil then
+        --     save_to_buffer(inst, GLOBAL.AllPlayers[1])
+        -- end
+		for i, v in ipairs(GLOBAL.AllPlayers) do
+			if v~=nil and v.success_to_learn_map and (not v.is_learning_from_buffer) then
+				save_to_buffer(inst, v)
+				break
+			else
+				print("[global position (CompleteSync)] During saving, there is a player failed to learn map data, so not save to buffer. Please leave a comment in the workshop page if you see this line")
+				print("[global position (CompleteSync)]在保存地图数据时，有玩家学习地图数据失败，所以不保存到缓冲区。如果你发现了这一条，请在创意工坊留言")
+			end
+		end
         return old_maprecorder_onsave(...)
     end
 
-    local OnLoadPlayerMapdata = function(load_success, str)
-        if load_success == true then
-            inst.components.maprecorder.mapdata = str
-        end
-    end
-    GLOBAL.TheSim:GetPersistentString("player_mapdata", OnLoadPlayerMapdata)
+    -- local OnLoadPlayerMapdata = function(load_success, str)
+    --     if load_success == true then
+	-- 		print("[global position (CompleteSync)]success to load map data")
+    --         inst.components.maprecorder.mapdata = str
+	-- 		print(str)
+	-- 	else
+	-- 		print("[global position (CompleteSync)]failed to load map data")
+    --     end
+    -- end
+	-- print("[global position (CompleteSync)]Before loading map data")
+    -- GLOBAL.TheSim:GetPersistentString("player_mapdata", OnLoadPlayerMapdata)
 
 end)
 -- ************************ end of add maprecorder to world as a buffer ************************
@@ -259,6 +290,7 @@ AddPrefabPostInit("world", function(inst)
     -- TODO: the gap between str and map data should be resolved.
     -- TODO2: how about the migrate event?
     local OnMyPlayerJoined = function(world, player)
+		print("[global position (CompleteSync)]Player joined")
         -- If empty world, learn from recorded data.
         local maprecorder = world.components.maprecorder
         if #GLOBAL.AllPlayers == 1 then
@@ -283,6 +315,7 @@ AddPrefabPostInit("world", function(inst)
 
 
 	local OnMyPlayerActivated = function(world, player)
+		print("[global position (CompleteSync)]Player activated")
 		if not GLOBAL.TheNet:GetIsServer() then
 			-- if player.userid == GLOBAL.ThePlayer.userid then
 			print("[global position (CompleteSync)] sending RPC")
@@ -295,6 +328,7 @@ AddPrefabPostInit("world", function(inst)
 	inst:ListenForEvent("playeractivated", OnMyPlayerActivated, GLOBAL.TheWorld)
 
     local OnMyPlayerDespawn = function(world, player)
+		print("[global position (CompleteSync)]Player despawned")
 		if not player.success_to_learn_map then
 			print("[global position (CompleteSync)]Player failed to learn map data. so not save to buffer.")
 			player.success_to_learn_map = false
@@ -304,6 +338,7 @@ AddPrefabPostInit("world", function(inst)
 		end
     end
     local OnMyPlayerDespawnAndDelete = function(world, player)
+		print("[global position (CompleteSync)]Player despawned and delete")
 		if not player.success_to_learn_map then
 			print("[global position (CompleteSync)]Player failed to learn map data. so not save to buffer.")
 			player.success_to_learn_map = false
@@ -313,6 +348,7 @@ AddPrefabPostInit("world", function(inst)
 		end
     end
     local OnMyPlayerDespawnAndMigrate = function(world, data)
+		print("[global position (CompleteSync)]Player despawned and migrate")
 		if not data.player.success_to_learn_map then
 			print("[global position (CompleteSync)]Player failed to learn map data. so not save to buffer.")
 			data.player.success_to_learn_map = false
@@ -324,6 +360,20 @@ AddPrefabPostInit("world", function(inst)
     inst:ListenForEvent("ms_playerdespawn", OnMyPlayerDespawn, GLOBAL.TheWorld)
     inst:ListenForEvent("ms_playerdespawnanddelete", OnMyPlayerDespawnAndDelete, GLOBAL.TheWorld)
     inst:ListenForEvent("ms_playerdespawnandmigrate", OnMyPlayerDespawnAndMigrate, GLOBAL.TheWorld)
+end)
+
+AddPlayerPostInit(function(player)
+	print("[global position (CompleteSync)]In my AddPlayerPostInit")
+	old_save_for_reroll = player.SaveForReroll
+	player.SaveForReroll = function(self)
+		print("[global position (CompleteSync)]In my SaveForReroll")
+		-- save_to_buffer(GLOBAL.TheWorld, self)
+		local rerollData = old_save_for_reroll(self)
+		if rerollData then
+			rerollData.maps = nil
+		end
+		return rerollData
+	end
 end)
 -- ************************ end of build event handler ************************
 
