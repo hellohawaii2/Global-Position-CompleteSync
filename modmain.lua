@@ -377,53 +377,32 @@ AddPlayerPostInit(function(player)
 end)
 -- ************************ end of build event handler ************************
 
--- ************************ The orginal codes  of GLOBAL POSITION(REMAPPED) ************************
-local oldmaxrange = GLOBAL.TUNING.MAX_INDICATOR_RANGE
-local function NewShouldTrackfn(inst, viewer)
-    return  inst:IsValid() and
-        not inst:HasTag("noplayerindicator") and
-        not inst:HasTag("hiding") and
-        inst:IsNear(viewer, oldmaxrange * 1.5) and -- Originally checks inst:IsNear(inst, max_range), What's the point of that?
-        not inst.entity:FrustumCheck() and
-        GLOBAL.CanEntitySeeTarget(viewer, inst)
-end
+-- ************************ share map codes ************************
+-- This codes is inspired by the mod "Global Positions Remapped"
+-- AddPlayerPostInit(function(inst)
 
-AddPlayerPostInit(function(inst)
+--     if GLOBAL.TheWorld.ismastersim then
+--         inst.icon = GLOBAL.SpawnPrefab("globalmapicon")
+--         inst.icon:TrackEntity(inst)
+--         inst:AddComponent("maprevealer")
+-- 		if inst.prefab == "willow" then
+--         	inst.components.maprevealer.revealperiod = 0.5
+-- 		end
+--     end
 
-    if GLOBAL.TheWorld.ismastersim then
-        inst.icon = GLOBAL.SpawnPrefab("globalmapicon")
-        if not inst:HasTag("playerghost") then
-            -- inst.icon.MiniMapEntity:SetIsFogRevealer(true)
-            -- inst.icon:AddTag("fogrevealer")
-        end
-        inst.icon:TrackEntity(inst)
+-- 	-- the `inst.entity:SetCanSleep(false)` will cause bugs related to wiilow's lighter
 
-        inst.entity:SetCanSleep(false)
+--     local OnDeath = function() 
+--         inst.components.maprevealer:Stop() 
+--     end
+--     local OnRespawn = function()
+--         inst.components.maprevealer:Start()
+--      end
 
-        inst:AddComponent("maprevealer")
-		if inst.prefab == "willow" then
-        	inst.components.maprevealer.revealperiod = 0.5
-		end
-    end
-
-    if not GLOBAL.TheNet:IsDedicated() then
-        inst.components.hudindicatable:SetShouldTrackFunction(NewShouldTrackfn)
-    end
-
-    local OnDeath = function() 
-		-- 不知道为什么注释掉这个我遇到merge data失败的错误，啥情况。
-        -- inst.icon.MiniMapEntity:SetIsFogRevealer(false) inst.icon:RemoveTag("fogrevealer") 
-        inst.components.maprevealer:Stop() 
-    end
-    local OnRespawn = function()
-        -- inst.icon.MiniMapEntity:SetIsFogRevealer(true) inst.icon:AddTag("fogrevealer") 
-        inst.components.maprevealer:Start()
-     end
-
-    inst:ListenForEvent("ms_becameghost", OnDeath)
-    inst:ListenForEvent("ms_respawnedfromghost", OnRespawn)
-end)
--- ************************ end of the orginal codes  of GLOBAL POSITION(REMAPPED) ************************
+--     inst:ListenForEvent("ms_becameghost", OnDeath)
+--     inst:ListenForEvent("ms_respawnedfromghost", OnRespawn)
+-- end)
+-- ************************ end of share map codes ************************
 
 -- ************************ code for sharing the map from mapspotrevealer ************************
 AddComponentPostInit("mapspotrevealer", function(self)
@@ -518,6 +497,41 @@ AddComponentPostInit("pointofinterest", function(inst)
     	return distsq >= TUNING.MIN_INDICATOR_RANGE and distsq <= oldmaxrange
 	end
 	inst.ShouldShowHudIndicator = new_distance_checker
+end)
+
+local function NewPlayerShouldTrackfn(inst, viewer)
+    return  inst:IsValid() and
+        not inst:HasTag("noplayerindicator") and
+        not inst:HasTag("hiding") and
+        inst:IsNear(viewer, oldmaxrange * 1.5) and
+        not inst.entity:FrustumCheck() and
+        GLOBAL.CanEntitySeeTarget(viewer, inst)
+end
+
+AddPlayerPostInit(function(inst)
+    if not GLOBAL.TheNet:IsDedicated() then
+        inst.components.hudindicatable:SetShouldTrackFunction(NewPlayerShouldTrackfn)
+    end
+end)
+
+local function NewWagStaffNPCShouldTrackfn(inst, viewer)
+    return inst:IsValid() and
+        viewer:HasTag("wagstaff_detector") and
+        inst:IsNear(inst, oldmaxrange * 1.5) and
+        not inst.entity:FrustumCheck() and
+        GLOBAL.CanEntitySeeTarget(viewer, inst)
+end
+
+AddPrefabPostInit("wagstaff_npc", function(inst)
+	if not GLOBAL.TheNet:IsDedicated() then
+        inst.components.hudindicatable:SetShouldTrackFunction(NewWagStaffNPCShouldTrackfn)
+    end
+end)
+
+AddPrefabPostInit("wagstaff_npc_pstboss", function(inst)
+	if not GLOBAL.TheNet:IsDedicated() then
+        inst.components.hudindicatable:SetShouldTrackFunction(NewWagStaffNPCShouldTrackfn)
+    end
 end)
 
 if NETWORKPLAYERPOSITIONS then

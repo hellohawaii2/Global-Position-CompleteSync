@@ -19,8 +19,8 @@ This mod is committed to solving this problem.
 
 ]]
 
-author = "clearlove, rezecib, Sarcen, Niko, "
-version = "2.2.0"
+author = "clearlove, rezecib, Sarcen"
+version = "2.2.1"
 
 api_version = 10
 
@@ -100,7 +100,7 @@ configuration_options = CH and
 				"\n“玩家指针”和“玩家图标”没有同时禁用的情况下才会有效。",
 		options =	{
 						{description = "启用", data = true},
-						{description = "禁用", data = false},
+						-- {description = "禁用", data = false},
 					},
 		default = true,
 	},
@@ -199,7 +199,7 @@ configuration_options = CH and
 				"\n'Player Indicators' and 'Player Icons' are not both disabled.",
 		options =	{
 						{description = "Enabled", data = true},
-						{description = "Disabled", data = false},
+						-- {description = "Disabled", data = false},
 					},
 		default = true,
 	},
