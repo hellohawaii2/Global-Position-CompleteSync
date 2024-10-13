@@ -1082,7 +1082,6 @@ if ENABLEPINGS then
 end
 
 AddClassPostConstruct("widgets/mapwidget", function(MapWidget)
-	MapWidget.offset = GLOBAL.Vector3(0,0,0)
 	-- Hoverers get their text from the owner's tooltip; we set the MapWidget to the owner
 	MapWidget.nametext = require("widgets/maphoverer")()
 	if ENABLEPINGS then
@@ -1140,63 +1139,48 @@ AddClassPostConstruct("widgets/mapwidget", function(MapWidget)
 		end
 	end
 	
-	local OldOffset = MapWidget.Offset
-	function MapWidget:Offset(dx, dy, ...)
-		self.offset.x = self.offset.x + dx
-		self.offset.y = self.offset.y + dy
-		OldOffset(self, dx, dy, ...)
-	end
-	
-	local OldOnShow = MapWidget.OnShow
-	function MapWidget:OnShow(...)
-		self.offset.x = 0
-		self.offset.y = 0
-		OldOnShow(self, ...)
-	end
-	
-	local OldOnZoomIn = MapWidget.OnZoomIn
-	function MapWidget:OnZoomIn(...)
-		local zoom1 = self.minimap:GetZoom()
-		OldOnZoomIn(self, ...)
-		local zoom2 = self.minimap:GetZoom()
-		if self.shown then
-			self.offset = self.offset*zoom1/zoom2
-		end
-	end
-
-	local OldOnZoomOut = MapWidget.OnZoomOut
-	function MapWidget:OnZoomOut(...)
-		local zoom1 = self.minimap:GetZoom()
-		OldOnZoomOut(self, ...)
-		local zoom2 = self.minimap:GetZoom()
-		if self.shown and zoom1 < 20 then
-			self.offset = self.offset*zoom1/zoom2
-		end
-	end
 	
 	function MapWidget:GetWorldMousePosition()
-		-- Get the screen size so we can figure out the position of the center
-		local screenwidth, screenheight = GLOBAL.TheSim:GetScreenSize()
-		-- But also adjust the center to the position of the player
-		-- (this makes it so we only have to take into account camera angle once)
-		local cx = screenwidth*.5 + self.offset.x*4.5
-		local cy = screenheight*.5 + self.offset.y*4.5
-		local mx, my = GLOBAL.TheInput:GetScreenPosition():Get()
+		-- -- Get the screen size so we can figure out the position of the center
+		-- local screenwidth, screenheight = GLOBAL.TheSim:GetScreenSize()
+		-- -- But also adjust the center to the position of the player
+		-- -- (this makes it so we only have to take into account camera angle once)
+		-- local cx = screenwidth*.5 + self.offset.x*4.5
+		-- local cy = screenheight*.5 + self.offset.y*4.5
+		-- local mx, my = GLOBAL.TheInput:GetScreenPosition():Get()
+		-- if GLOBAL.TheInput:ControllerAttached() then
+		-- 	mx, my = screenwidth*.5, screenheight*.5
+		-- end
+		-- -- Calculate the offset of the mouse from the center
+		-- local ox = mx - cx
+		-- local oy = my - cy
+		-- -- Calculate the world distance and world angle
+		-- local angle = GLOBAL.TheCamera:GetHeadingTarget()*math.pi/180
+		-- local wd = math.sqrt(ox*ox + oy*oy)*self.minimap:GetZoom()/4.5
+		-- local wa = math.atan2(ox, oy) - angle
+		-- -- Convert to world x and z coordinates, adding in the offset from the player
+		-- local px, _, pz = GLOBAL.ThePlayer:GetPosition():Get()
+		-- local wx = px - wd*math.cos(wa)
+		-- local wz = pz + wd*math.sin(wa)
+		-- return GLOBAL.Vector3(wx, 0, wz)
+
+		-- copy from debugkeys.lua
+		local mousepos = GLOBAL.TheInput:GetScreenPosition()
 		if GLOBAL.TheInput:ControllerAttached() then
-			mx, my = screenwidth*.5, screenheight*.5
+			local screenwidth, screenheight = GLOBAL.TheSim:GetScreenSize()
+			local mx, my = screenwidth*.5, screenheight*.5
+			mousepos = GLOBAL.Vector3(mx, my, 0)
 		end
-		-- Calculate the offset of the mouse from the center
-		local ox = mx - cx
-		local oy = my - cy
-		-- Calculate the world distance and world angle
-		local angle = GLOBAL.TheCamera:GetHeadingTarget()*math.pi/180
-		local wd = math.sqrt(ox*ox + oy*oy)*self.minimap:GetZoom()/4.5
-		local wa = math.atan2(ox, oy) - angle
-		-- Convert to world x and z coordinates, adding in the offset from the player
-		local px, _, pz = GLOBAL.ThePlayer:GetPosition():Get()
-		local wx = px - wd*math.cos(wa)
-		local wz = pz + wd*math.sin(wa)
-		return GLOBAL.Vector3(wx, 0, wz)
+		local the_screen = self.parent
+		if the_screen~=nil then
+			local mousewidgetpos = the_screen:ScreenPosToWidgetPos( mousepos )
+			local mousemappos = the_screen:WidgetPosToMapPos( mousewidgetpos )
+	
+			local x,y,z = self.minimap:MapPosToWorldPos( mousemappos:Get() )
+			return GLOBAL.Vector3(x, 0, y)
+		else
+			return GLOBAL.Vector3(0, 0, 0)
+		end
 	end
 end)
 
