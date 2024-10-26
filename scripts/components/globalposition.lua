@@ -22,9 +22,6 @@ local function AddMapRevealer(inst)
 	if not inst.components.maprevealer then
 		inst:AddComponent("maprevealer")
 	end
-	if inst.prefab == "willow" then
-		inst.components.maprevealer.revealperiod = 0.5
-	end
 	-- inst.components.maprevealer.revealperiod = 0.5
 	-- inst.components.maprevealer:Stop()
 	-- if _GLOBALPOSITIONS_SHAREMINIMAPPROGRESS then

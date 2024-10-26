@@ -471,6 +471,77 @@ end)
 
 -- ************************ end of code for sharing the map from mapspotrevealer ************************
 
+-- ************************ code for dealing with glitchy mapicon ************************
+local remove_ghost_icons = GetModConfigData("REMOVE_GHOST_ICONS")
+if remove_ghost_icons then
+	-- These corrections should be done by Klei, but they are not done yet.
+	AddPrefabPostInit("bernie_big", function(inst) 
+		inst.MiniMapEntity:SetCanUseCache(false) 
+		if GLOBAL.TheWorld.ismastersim then
+			inst:AddComponent("maprevealable")
+			inst.components.maprevealable:SetIconPrefab("globalmapiconunderfog")
+		end
+	end)
+	local function show_minimap(inst)
+		inst.icon = GLOBAL.SpawnPrefab("globalmapiconunderfog")
+		inst.icon:TrackEntity(inst)
+	end
+	AddPrefabPostInit("bernie_inactive", function(inst)
+		if GLOBAL.TheWorld.ismastersim then
+			inst:DoTaskInTime(0, show_minimap)
+		end
+	end)
+	AddPrefabPostInit("bernie_active", function(inst)
+		if GLOBAL.TheWorld.ismastersim then
+			inst:DoTaskInTime(0, show_minimap)
+		end
+	end)
+
+	-- TODO: perhaps only disable cache for domesticated beefalo, current may conflict with other mods (like those add icons for beefalo herds)
+	AddPrefabPostInit("beefalo", function(inst) inst.MiniMapEntity:SetCanUseCache(false) end)
+	-- AddPrefabPostInit("beefalo", function(inst)
+	-- 	local old_updatedomestication = inst.UpdateDomestication
+	-- 	inst.UpdateDomestication = function(self)
+	-- 		print("updating domestication")
+	-- 		if inst.components.domesticatable:IsDomesticated() then
+	-- 			print("Do not cache")
+	-- 			inst.MiniMapEntity:SetEnabled(false)
+	-- 			inst.MiniMapEntity:SetCanUseCache(false)
+	-- 			inst.MiniMapEntity:SetEnabled(true)
+	-- 		else
+	-- 			print("Can cache")
+	-- 			inst.MiniMapEntity:SetEnabled(false)
+	-- 			inst.MiniMapEntity:SetCanUseCache(false)
+	-- 			inst.MiniMapEntity:SetEnabled(true)
+	-- 		end
+	-- 		old_updatedomestication(self)
+	-- 	end
+	-- end)
+	-- need to add icon for beef_bell, this is the canonical way to do it, like chester.
+	-- TODO: only add icon for linked beef bell
+	table.insert(Assets, Asset("IMAGE", "minimap/beef_bell_linked.tex"))
+	table.insert(Assets, Asset("ATLAS", "minimap/beef_bell_linked.xml"))
+	AddMinimapAtlas("minimap/beef_bell_linked.xml")
+	table.insert(Assets, Asset("IMAGE", "minimap/shadow_beef_bell_linked.tex"))
+	table.insert(Assets, Asset("ATLAS", "minimap/shadow_beef_bell_linked.xml"))
+	AddMinimapAtlas("minimap/shadow_beef_bell_linked.xml")
+	AddPrefabPostInit("beef_bell", function(inst)
+		if inst.MiniMapEntity == nil then
+			inst.entity:AddMiniMapEntity()
+		end
+		inst.MiniMapEntity:SetIcon("beef_bell_linked.tex")
+		inst.MiniMapEntity:SetPriority(7)
+	end)
+	AddPrefabPostInit("shadow_beef_bell", function(inst) 
+		if inst.MiniMapEntity == nil then
+			inst.entity:AddMiniMapEntity()
+		end
+		inst.MiniMapEntity:SetIcon("shadow_beef_bell_linked.tex")
+		inst.MiniMapEntity:SetPriority(7)
+	end)
+end
+-- ************************ end of code for dealing with glitchy mapicon ************************
+
 --#rezecib this makes this available outside of the modmain
 -- (it will be checked in globalposition_classified)
 GLOBAL._GLOBALPOSITIONS_SHAREMINIMAPPROGRESS = SHAREMINIMAPPROGRESS

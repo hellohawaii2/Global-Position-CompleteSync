@@ -116,6 +116,16 @@ configuration_options = CH and
 		default = true,
 	},
 	{
+		name = "REMOVE_GHOST_ICONS",
+		label = "移除残影",
+		hover = "当玩家移动过快，跟随玩家的伯尼或者皮弗娄牛会在地图上留下残影，开启本选项来消除残影",
+		options =	{
+						{description = "启用", data = true, hover="注意，开启本选项后将不再显示视野范围外的牛的图标，但增加了牛铃的地图图标以便玩家寻找牛"},
+						{description = "禁用", data = false},
+					},
+		default = true,
+	},
+	{
 		name = "STOPSAVEMAPEXPLORER",
 		label = "减少卡顿",
 		hover = "实验性功能，尝试减少上下洞穴时的卡顿。通过修改人物存档来实现，我不确定这是否安全",
@@ -211,6 +221,16 @@ configuration_options = CH and
 		options =	{
 						{description = "Enabled", data = true},
 						-- {description = "Disabled", data = false},
+					},
+		default = true,
+	},
+	{
+		name = "REMOVE_GHOST_ICONS",
+		label = "Remove Ghost Icons",
+		hover = "When the player moves too fast, the Bernie or Beefalo following the player will leave ghost icons on the map. Enable this option to remove them",
+		options =	{
+						{description = "Enabled", data = true},
+						{description = "Disabled", data = false},
 					},
 		default = true,
 	},
