@@ -404,7 +404,33 @@ end)
 -- end)
 -- ************************ end of share map codes ************************
 
+-- ************************ code for debug the maprevealer ************************
+
+AddComponentPostInit("maprevealer", function(inst)
+    inst.RevealMapToPlayer = function(self, player)
+        if player.player_classified ~= nil then
+            if player.client_is_ready then
+                player.player_classified.MapExplorer:RevealArea(self.inst.Transform:GetWorldPosition())
+            else
+                print("player.client_is_ready is false before revealing, abort this reveal")
+            end
+        end
+    end
+end)
+-- ************************ end of code for debug the maprevealer ************************
+
 -- ************************ code for sharing the map from mapspotrevealer ************************
+local keep_trying_reveal
+keep_trying_reveal = function(player, x, y, z)
+	if player.client_is_ready then
+		player.player_classified.MapExplorer:RevealArea(x, y, z, true, true)
+	else
+		print("player.client_is_ready is false before revealing in mapspotrevealer")
+		player:DoTaskInTime(1, function()
+			keep_trying_reveal(player, x, y, z)
+		end)
+	end
+end
 AddComponentPostInit("mapspotrevealer", function(self)
     -- local old_revealmap = self.RevealMap
     self.RevealMap = function(self, doer)
@@ -454,7 +480,8 @@ AddComponentPostInit("mapspotrevealer", function(self)
                 -- end)
 				if v~=nil and v.player_classified~=nil and v.player_classified.MapExplorer~=nil then
 					v:DoStaticTaskInTime(4*FRAMES, function()
-						v.player_classified.MapExplorer:RevealArea(x, y, z, true, true)
+						-- v.player_classified.MapExplorer:RevealArea(x, y, z, true, true)
+						keep_trying_reveal(v, x, y, z)
 					end)
 				end
             end
