@@ -3,9 +3,17 @@ local function AddGlobalIcon(inst, isplayer, classified)
 	classified.icon = SpawnPrefab("globalmapicon_noproxy")
 	classified.icon.MiniMapEntity:SetPriority(10)
 	classified.icon.MiniMapEntity:SetRestriction("player")
+	if isplayer and not inst:HasTag("playerghost") then
+		classified.icon.MiniMapEntity:SetIsFogRevealer(true)
+		classified.icon:AddTag("fogrevealer")
+	end
 	classified.icon2 = SpawnPrefab("globalmapicon")
 	classified.icon2.MiniMapEntity:SetPriority(10)
 	classified.icon2.MiniMapEntity:SetRestriction("player")
+	if isplayer and not inst:HasTag("playerghost") then
+		classified.icon2.MiniMapEntity:SetIsFogRevealer(true)
+		classified.icon2:AddTag("fogrevealer")
+	end
 	if inst.MiniMapEntity then
 		inst.MiniMapEntity:SetEnabled(false)
 		classified.icon.MiniMapEntity:CopyIcon(inst.MiniMapEntity)
@@ -38,10 +46,14 @@ local GlobalPosition = Class(function(self, inst)
 	if isplayer then
 		AddMapRevealer(inst)
 		self.respawnedfromghostfn = function()
+			self.classified.icon.MiniMapEntity:SetIsFogRevealer(true) self.classified.icon:AddTag("fogrevealer")
+			self.classified.icon2.MiniMapEntity:SetIsFogRevealer(true) self.classified.icon2:AddTag("fogrevealer")
 			self:SetMapSharing(_GLOBALPOSITIONS_SHAREMINIMAPPROGRESS)
 			self:PushPortraitDirty()
 		end
 		self.becameghostfn = function()
+			self.classified.icon.MiniMapEntity:SetIsFogRevealer(false) self.classified.icon:RemoveTag("fogrevealer")
+			self.classified.icon2.MiniMapEntity:SetIsFogRevealer(false) self.classified.icon2:RemoveTag("fogrevealer")
 			self:SetMapSharing(false)
 			self:PushPortraitDirty()
 		end
