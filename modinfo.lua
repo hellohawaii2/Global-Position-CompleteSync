@@ -20,7 +20,7 @@ This mod is committed to solving this problem.
 ]]
 
 author = "clearlove, rezecib, Sarcen"
-version = "2.2.4"
+version = "2.3.1"
 
 api_version = 10
 
@@ -136,6 +136,17 @@ configuration_options = CH and
 		default = true,
 	},
 	{
+		name = "UPDADTEFREQUENCY",
+		label = "共享地图时间间隔",
+		hover = "共享地图的时间间隔, 增加该间隔可能可以减少服务器的负担",
+		options = {
+			{description = "5", data = 5},
+			{description = "2", data = 2},
+			{description = "0.5", data = 0.5},
+		},
+		default = 0.5,
+	},
+	{
 		name = "OVERRIDEMODE",
 		label = "荒野覆盖",
 		hover = "如果启用，它将使用你在荒野模式中设置的其他选项。" ..
@@ -243,6 +254,17 @@ configuration_options = CH and
 			{description = "Disabled", data = false},
 		},
 		default = false,
+	},
+	{
+		name = "UPDADTEFREQUENCY",
+		label = "Share Map Interval",
+		hover = "The time interval for sharing the map, increasing this interval may reduce the burden on the server",
+		options = {
+			{description = "5", data = 5},
+			{description = "2", data = 2},
+			{description = "0.5", data = 0.5},
+		},
+		default = 0.5,
 	},
 	{
 		name = "OVERRIDEMODE",

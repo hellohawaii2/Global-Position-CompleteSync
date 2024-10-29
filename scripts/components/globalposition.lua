@@ -30,7 +30,11 @@ local function AddMapRevealer(inst)
 	if not inst.components.maprevealer then
 		inst:AddComponent("maprevealer")
 	end
-	-- inst.components.maprevealer.revealperiod = 0.5
+	if _GLOBALPOSITIONS_COMPLETESYNC_UPDADTEFREQUENCY then
+		inst.components.maprevealer.revealperiod = _GLOBALPOSITIONS_COMPLETESYNC_UPDADTEFREQUENCY
+	else
+		print("[global position (CompleteSync)] failed to set custom revealperiod")
+	end
 	-- inst.components.maprevealer:Stop()
 	-- if _GLOBALPOSITIONS_SHAREMINIMAPPROGRESS then
 	-- 	inst.components.maprevealer:Start()
