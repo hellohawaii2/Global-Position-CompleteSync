@@ -211,7 +211,7 @@ AddPrefabPostInit("world", function(inst)
             count = 0
         end
         count = count + 1
-        if count > 60 then
+        if count > 600 then
             print("[global position (CompleteSync)]Wrong! Tried 60 times, but still failed to teach map to player")
             -- inst:RemoveTag("is_learning_from_buffer")
             player.is_learning_from_buffer = false
@@ -412,8 +412,6 @@ AddComponentPostInit("maprevealer", function(inst)
         if player.player_classified ~= nil then
             if player.client_is_ready then
                 player.player_classified.MapExplorer:RevealArea(self.inst.Transform:GetWorldPosition())
-            else
-                print("player.client_is_ready is false before revealing, abort this reveal")
             end
         end
     end
