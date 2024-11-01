@@ -50,14 +50,18 @@ local GlobalPosition = Class(function(self, inst)
 	if isplayer then
 		AddMapRevealer(inst)
 		self.respawnedfromghostfn = function()
-			self.classified.icon.MiniMapEntity:SetIsFogRevealer(true) self.classified.icon:AddTag("fogrevealer")
-			self.classified.icon2.MiniMapEntity:SetIsFogRevealer(true) self.classified.icon2:AddTag("fogrevealer")
+			if self.classified~=nil then
+				self.classified.icon.MiniMapEntity:SetIsFogRevealer(true) self.classified.icon:AddTag("fogrevealer")
+				self.classified.icon2.MiniMapEntity:SetIsFogRevealer(true) self.classified.icon2:AddTag("fogrevealer")
+			end
 			self:SetMapSharing(_GLOBALPOSITIONS_SHAREMINIMAPPROGRESS)
 			self:PushPortraitDirty()
 		end
 		self.becameghostfn = function()
-			self.classified.icon.MiniMapEntity:SetIsFogRevealer(false) self.classified.icon:RemoveTag("fogrevealer")
-			self.classified.icon2.MiniMapEntity:SetIsFogRevealer(false) self.classified.icon2:RemoveTag("fogrevealer")
+			if self.classified~=nil then
+				self.classified.icon.MiniMapEntity:SetIsFogRevealer(false) self.classified.icon:RemoveTag("fogrevealer")
+				self.classified.icon2.MiniMapEntity:SetIsFogRevealer(false) self.classified.icon2:RemoveTag("fogrevealer")
+			end
 			self:SetMapSharing(false)
 			self:PushPortraitDirty()
 		end
