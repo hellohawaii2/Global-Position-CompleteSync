@@ -1,4 +1,23 @@
-local CH = locale == "zh" or locale == "zhr"
+local chinese_languages =
+{
+    zh = "zh", -- Chinese for Steam
+    zhr = "zh", -- Chinese for WeGame
+    ch = "zh", -- Chinese mod
+    chs = "zh", -- Chinese mod
+    sc = "zh", -- simple Chinese
+    zht = "zh", -- traditional Chinese for Steam
+	tc = "zh", -- traditional Chinese
+	cht = "zh", -- Chinese mod
+}
+
+if chinese_languages[locale] ~= nil then
+    lang = chinese_languages[locale]
+else
+    lang = "en"
+end
+
+local CH = lang == 'zh'
+
 name = CH and "全图定位(完全同步)" or "Global Positions (CompleteSync)"
 description = CH and 
 [[之前的全图定位模组，各个玩家之间的地图并不能完全同步，例如以下场景：
@@ -167,6 +186,18 @@ configuration_options = CH and
 					},
 		default = true,
 	},
+	{
+        name = "lang",
+        label = "语言",
+        hover = "选择你想要使用的语言",
+        options =
+        {
+            {description = "English(英语)", data = "en", hover = ""},
+            {description = "中文(Chinese)", data = "zh", hover = ""},
+            {description = "自动", data = "auto", hover = "根据游戏语言自动设置"},
+        },
+        default = "auto",
+    },
 } or
 {
 	{
@@ -287,4 +318,16 @@ configuration_options = CH and
 					},
 		default = true,
 	},
+	{
+        name = "lang",
+        label = "Language",
+        hover = "Select the language you want to use",
+        options =
+        {
+            {description = "English(英语)", data = "en", hover = ""},
+            {description = "中文(Chinese)", data = "zh", hover = ""},
+            {description = "Auto", data = "auto", hover = "Automatically set according to the game language"},
+        },
+        default = "auto",
+    },
 }

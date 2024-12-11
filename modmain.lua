@@ -1,6 +1,30 @@
 local TUNING = GLOBAL.TUNING
 TUNING.REMAPPED_MODE = TUNING.REMAPPED_MODE or GetModConfigData("mode") -- Ignore config if already set via other mods
 
+local lang = GetModConfigData("lang") or "auto"
+if lang == "auto" then
+    lang = GLOBAL.LanguageTranslator.defaultlang
+end
+
+local chinese_languages =
+{
+    zh = "zh", -- Chinese for Steam
+    zhr = "zh", -- Chinese for WeGame
+    ch = "zh", -- Chinese mod
+    chs = "zh", -- Chinese mod
+    sc = "zh", -- simple Chinese
+    zht = "zh", -- traditional Chinese for Steam
+	tc = "zh", -- traditional Chinese
+	cht = "zh", -- Chinese mod
+}
+
+if chinese_languages[lang] ~= nil then
+    lang = chinese_languages[lang]
+else
+    lang = "en"
+end
+
+TUNING.Global_Positions_CompleteSync_LANGUAGE = lang
 
 PrefabFiles = {
 	"globalposition_classified",
@@ -212,7 +236,7 @@ AddPrefabPostInit("world", function(inst)
         end
         count = count + 1
         if count > 600 then
-            print("[global position (CompleteSync)]Wrong! Tried 60 times, but still failed to teach map to player")
+            print("[global position (CompleteSync)]Wrong! Tried 600 times, but still failed to teach map to player")
             -- inst:RemoveTag("is_learning_from_buffer")
             player.is_learning_from_buffer = false
 			player.success_to_learn_map = false

@@ -2,8 +2,7 @@ local Widget = require "widgets/widget"
 local PingBadge = require("widgets/pingbadge")
 
 -- local ATLAS = "images/avatars.xml"
-local lang = LanguageTranslator.defaultlang or 'en'
-local CH = lang == 'zh' or lang == 'zht'
+local CH = TUNING.Global_Positions_CompleteSync_LANGUAGE == 'zh'
 
 local PingWheel = Class(Widget, function(self)
     Widget._ctor(self, "PingWheel")
