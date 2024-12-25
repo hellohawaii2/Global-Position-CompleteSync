@@ -249,8 +249,8 @@ AddPrefabPostInit("world", function(inst)
 			return
 		end
 		if maprecorder.is_recording then
-			print("[global position (CompleteSync)]the buffer is being written to, waiting. Please leave a comment in the workshop page if you see this line")
-			print("[global position (CompleteSync)]在学习地图时，地图正在被写入，我怀疑这是导致地图丢失的bug所在。如果你发现了这一条，请在创意工坊留言")
+			-- print("[global position (CompleteSync)]the buffer is being written to, waiting. Please leave a comment in the workshop page if you see this line")
+			-- print("[global position (CompleteSync)]在学习地图时，地图正在被写入，我怀疑这是导致地图丢失的bug所在。如果你发现了这一条，请在创意工坊留言")
 			maprecorder.inst.DoTaskInTime(maprecorder, 1, KeepTryingTeach, player, count)
 			return
 		end
@@ -287,8 +287,8 @@ AddPrefabPostInit("world", function(inst)
 				save_to_buffer(inst, v)
 				break
 			else
-				print("[global position (CompleteSync)] During saving, there is a player failed to learn map data, so not save to buffer. Please leave a comment in the workshop page if you see this line")
-				print("[global position (CompleteSync)]在保存地图数据时，有玩家学习地图数据失败，所以不保存到缓冲区。如果你发现了这一条，请在创意工坊留言")
+				-- print("[global position (CompleteSync)] During saving, there is a player failed to learn map data, so not save to buffer. Please leave a comment in the workshop page if you see this line")
+				-- print("[global position (CompleteSync)]在保存地图数据时，有玩家学习地图数据失败，所以不保存到缓冲区。如果你发现了这一条，请在创意工坊留言")
 			end
 		end
         return old_maprecorder_onsave(...)
