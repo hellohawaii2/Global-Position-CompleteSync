@@ -91,16 +91,20 @@ if mode == "wilderness" and not OVERRIDEMODE then --by default, have different s
 	COMPLETESYNC = false
 end
 
-GLOBAL.world_is_newly_created = false
 
 -- ************************ Functions about mapdata update************************ 
 local function save_to_buffer(world, player)
 	print("[global position (CompleteSync)] saving to buffer")
     local maprecorder = world.components.maprecorder
+	local old_data = maprecorder.mapdata
 	maprecorder.is_recording = true
     local result, description = maprecorder:RecordMap(player)
 	if result then
 		print("[global position (CompleteSync)] success to saving to buffer")
+		if old_data == nil then
+			print("[global position (CompleteSync)] old_data is nil")
+			world.shard.components.shard_isgpsnewlyadded:IncreaseCounter()
+		end
 	else
 		print("[global position (CompleteSync)] failed to saving to buffer")
 		print(description)
@@ -128,6 +132,16 @@ local function handleClientPlayerJoined(player)
 end
 local modname = "globalpositioncompletesync"
 AddModRPCHandler(modname, "ClientPlayerJoined", handleClientPlayerJoined)
+
+
+AddShardModRPCHandler(modname, "ShardIncreaseCounter", function()
+	if GLOBAL.TheWorld.ismastershard then
+		print("[global position (CompleteSync)] Shard want to IncreaseCounter, recieve a RPC")
+		GLOBAL.TheWorld.shard.components.shard_isgpsnewlyadded:IncreaseCounter()
+	else
+		return
+	end
+end)
 -- ************************ end of functions about mapdata update ************************ 
 
 
@@ -137,7 +151,7 @@ local STOPSAVEMAPEXPLORER = GetModConfigData("STOPSAVEMAPEXPLORER") and is_dedic
 if STOPSAVEMAPEXPLORER then
 require("networking")
 GLOBAL.SerializeUserSession = function (player, isnewspawn)
-	-- print("[global position (CompleteSync)]In my SerializeUserSession")
+	print("[global position (CompleteSync)]In my SerializeUserSession")
     if player ~= nil and player.userid ~= nil and player.userid:len() > 0 and (player == GLOBAL.ThePlayer or GLOBAL.TheNet:GetIsServer()) then
         --we don't care about references for player saves
         local playerinfo--[[, refs]] = player:GetSaveRecord()
@@ -164,7 +178,14 @@ GLOBAL.SerializeUserSession = function (player, isnewspawn)
         -- end
         -- TODO: can I call "save to buffer" here to avoid bug produced by ctrl+C?
         -- save_to_buffer(GLOBAL.TheWorld, player)  -- This seems to bother the basic function. Do not use the shared buffer!
-        GLOBAL.TheNet:SerializeUserSession(player.userid, data, isnewspawn == true, nil, metadataStr)
+
+		if GLOBAL.TheWorld.shard.components.shard_isgpsnewlyadded:CanDeleteUserMap() then
+			print("[global position (CompleteSync)] now delete map info from user")
+        	GLOBAL.TheNet:SerializeUserSession(player.userid, data, isnewspawn == true, nil, metadataStr)
+		else
+			print("[global position (CompleteSync)] Can not delete map info from user, still, save map data")
+			GLOBAL.TheNet:SerializeUserSession(player.userid, data, isnewspawn == true, player.player_classified ~= nil and player.player_classified.entity or nil, metadataStr)
+		end
     end
 end
 end
@@ -294,6 +315,14 @@ AddPrefabPostInit("world", function(inst)
         return old_maprecorder_onsave(...)
     end
 
+	-- local old_maprecorder_onload = inst.components.maprecorder.OnLoad
+	-- inst.components.maprecorder.OnLoad = function(...)
+	-- 	local result = old_maprecorder_onload(...)
+	-- 	print("[global position (CompleteSync)] maprecorder loaded called")
+	-- 	GLOBAL.maprecoder_load_func_called = true
+	-- end
+			
+
     -- local OnLoadPlayerMapdata = function(load_success, str)
     --     if load_success == true then
 	-- 		print("[global position (CompleteSync)]success to load map data")
@@ -309,11 +338,28 @@ AddPrefabPostInit("world", function(inst)
 end)
 -- ************************ end of add maprecorder to world as a buffer ************************
 
+GLOBAL.SetupGemCoreEnv()
+AddShardComponent("shard_isgpsnewlyadded")
+
+GLOBAL.world_data_is_empty = nil
+GLOBAL.world_is_newly_created = false
+-- GLOBAL.mod_newly_added_for_this_world = false
+-- GLOBAL.maprecoder_load_func_called = false
+
 -- ************************ Build event handler ************************
 -- The world listen for the player spawn
 AddPrefabPostInit("world", function(inst)
     -- TODO: the gap between str and map data should be resolved.
     -- TODO2: how about the migrate event?
+	-- Check if the maprecorder is empty
+	if inst.components.maprecorder.mapdata == nil then
+		print("[global position (CompleteSync)]The maprecorder is empty, are you starting a new game or adding this mod to old game?")
+		GLOBAL.world_data_is_empty = true
+	else
+		print("[global position (CompleteSync)]The maprecorder is not empty.")
+		GLOBAL.world_data_is_empty = false
+	end
+
     local OnMyPlayerJoined = function(world, player)
 		print("[global position (CompleteSync)]Player joined")
         -- If empty world, learn from recorded data.
@@ -672,8 +718,26 @@ if NETWORKPLAYERPOSITIONS then
 		-- print("checking state and time")
 		-- print(GLOBAL.TheWorld.state.time)
 		-- print(GLOBAL.TheWorld.state.cycles)
-		if GLOBAL.TheWorld.state.time < 0.01 and GLOBAL.TheWorld.state.cycles < 1 then
-			GLOBAL.world_is_newly_created = true
+		-- if GLOBAL.TheWorld.state.time < 0.01 and GLOBAL.TheWorld.state.cycles < 1 then
+		-- 	GLOBAL.world_is_newly_created = true
+		-- end
+
+		print("in worldprefab postinit")
+		if GLOBAL.TheWorld.ismastershard then
+			if GLOBAL.TheWorld.state.time < 0.01 and GLOBAL.TheWorld.state.cycles < 1 then
+				print("[global position (CompleteSync)]The world is newly created")
+				-- print("[global position (CompleteSync)]The world time is "..tostring(GLOBAL.TheWorld.state.time))
+				-- print("[global position (CompleteSync)]The world cycles is "..tostring(GLOBAL.TheWorld.state.cycles))
+				GLOBAL.world_is_newly_created = true
+			else
+				print("[global position (CompleteSync)]The world is not newly created")
+				GLOBAL.world_is_newly_created = false
+			end
+		
+			if GLOBAL.world_data_is_empty and not GLOBAL.world_is_newly_created then
+				GLOBAL.TheWorld.shard.components.shard_isgpsnewlyadded:SetIsAddMidway()
+			else
+			end
 		end
 	end)
 	

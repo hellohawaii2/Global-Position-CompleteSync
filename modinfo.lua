@@ -39,7 +39,7 @@ This mod is committed to solving this problem.
 ]]
 
 author = "clearlove, rezecib, Sarcen"
-version = "2.3.2"
+version = "2.3.4"
 
 api_version = 10
 
@@ -53,6 +53,13 @@ all_clients_require_mod = true
 
 -- Load last in case mods what to overwrite user config data.
 priority = -1000
+
+mod_dependencies = {
+    {--GEMCORE
+        workshop = "workshop-1378549454",
+    },
+}
+
 
 icon_atlas = "GlobalPositionsIcon.xml"
 icon = "GlobalPositionsIcon.tex"
