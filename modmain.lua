@@ -907,8 +907,7 @@ end
 -- Expose this so that other mods can add data for things they want to have icons/indicators for
 GLOBAL._GLOBALPOSITIONS_TARGET_INDICATOR_ICONS = TARGET_INDICATOR_ICONS
 
-local lang = GLOBAL.LanguageTranslator.defaultlang or 'en'
-local CH = lang == 'zh' or lang == 'zht'
+local CH = lang == 'zh'
 if ENABLEPINGS then
 	GLOBAL.STRINGS.NAMES.PING_GENERIC = CH and "兴趣点" or "Point of Interest"
 	GLOBAL.STRINGS.NAMES.PING_DANGER = CH and "这里危险" or "Danger"
@@ -932,8 +931,7 @@ end
 -- also parses the TheNet:GetClientTable() to determine what it shows
 local OldGetAvatarAtlas = TargetIndicator.GetAvatarAtlas
 function TargetIndicator:GetAvatarAtlas(...)
-	local lang = GLOBAL.LanguageTranslator.defaultlang or 'en'
-	local CH = lang == 'zh' or lang == 'zht'
+	local CH = lang == 'zh'
 	self.is_character = true
 	if type(self.target.userid) == "userdata" then --this is a globalposition_classified
 		local prefab = self.target.parentprefab:value()
