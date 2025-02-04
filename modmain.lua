@@ -440,8 +440,13 @@ AddPlayerPostInit(function(player)
 		print("[global position (CompleteSync)]In my SaveForReroll")
 		-- save_to_buffer(GLOBAL.TheWorld, self)
 		local rerollData = old_save_for_reroll(self)
-		if rerollData then
-			rerollData.maps = nil
+		if GLOBAL.TheWorld.shard.components.shard_isgpsnewlyadded:CanDeleteUserMap() then
+			print("[global position (CompleteSync)] now delete map info from user when rerolling")
+			if rerollData then
+				rerollData.maps = nil
+			end
+		else
+			print("[global position (CompleteSync)] Can not delete map info from user, still, save map data when rolling")
 		end
 		return rerollData
 	end
