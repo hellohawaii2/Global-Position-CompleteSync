@@ -357,10 +357,10 @@ AddPrefabPostInit("world", function(inst)
     -- TODO2: how about the migrate event?
 	-- Check if the maprecorder is empty
 	if inst.components.maprecorder.mapdata == nil then
-		print("[global position (CompleteSync)]The maprecorder is empty, are you starting a new game or adding this mod to old game?")
+		print("OLD[global position (CompleteSync)]The maprecorder is empty, are you starting a new game or adding this mod to old game?")
 		GLOBAL.world_data_is_empty = true
 	else
-		print("[global position (CompleteSync)]The maprecorder is not empty.")
+		print("OLD[global position (CompleteSync)]The maprecorder is not empty.")
 		GLOBAL.world_data_is_empty = false
 	end
 
@@ -742,7 +742,15 @@ if NETWORKPLAYERPOSITIONS then
 				print("[global position (CompleteSync)]The world is not newly created")
 				GLOBAL.world_is_newly_created = false
 			end
-		
+
+			if GLOBAL.TheWorld.components.maprecorder.mapdata == nil then
+				print("[global position (CompleteSync)]The maprecorder is empty, are you starting a new game or adding this mod to old game?")
+				GLOBAL.world_data_is_empty = true
+			else
+				print("[global position (CompleteSync)]The maprecorder is not empty.")
+				GLOBAL.world_data_is_empty = false
+			end
+
 			if GLOBAL.world_data_is_empty and not GLOBAL.world_is_newly_created then
 				GLOBAL.TheWorld.shard.components.shard_isgpsnewlyadded:SetIsAddMidway()
 			else

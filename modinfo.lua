@@ -39,7 +39,7 @@ This mod is committed to solving this problem.
 ]]
 
 author = "clearlove, rezecib, Sarcen"
-version = "2.3.6"
+version = "2.3.7"
 
 api_version = 10
 
@@ -157,7 +157,7 @@ configuration_options = CH and
 		hover = "实验性功能，尝试减少上下洞穴时的卡顿。通过修改人物存档来实现，我不确定这是否安全",
 		options =	{
 						{description = "启用", data = true},
-						{description = "禁用", data = false},
+						-- {description = "禁用", data = false},
 					},
 		default = true,
 	},
