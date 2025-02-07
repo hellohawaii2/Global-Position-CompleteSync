@@ -338,8 +338,12 @@ AddPrefabPostInit("world", function(inst)
 end)
 -- ************************ end of add maprecorder to world as a buffer ************************
 
-GLOBAL.SetupGemCoreEnv()
-AddShardComponent("shard_isgpsnewlyadded")
+-- GLOBAL.SetupGemCoreEnv()
+print("[global position (CompleteSync)] This is a new version without GemCore")
+-- GLOBAL.shardcomponent("shard_isgpsnewlyadded")
+AddPrefabPostInit("shard_network", function(inst)
+	inst:AddComponent("shard_isgpsnewlyadded")
+end)
 
 GLOBAL.world_data_is_empty = nil
 GLOBAL.world_is_newly_created = false
