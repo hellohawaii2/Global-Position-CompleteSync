@@ -63,6 +63,7 @@ local SHOWFIRES = FIREOPTIONS < 3
 local NEEDCHARCOAL = FIREOPTIONS == 2
 local SHOWFIREICONS = GetModConfigData("SHOWFIREICONS")
 local ENABLEPINGS = GetModConfigData("ENABLEPINGS")
+local GLOBAL_COURIER = GetModConfigData("GLOBAL_COURIER")
 local valid_ping_actions = {}
 if ENABLEPINGS then --Only request loading of ping assets if pings are enabled
 	table.insert(PrefabFiles, "pings")
@@ -495,6 +496,21 @@ AddComponentPostInit("maprevealer", function(inst)
         end
     end
 end)
+
+if GLOBAL_COURIER then
+	AddPlayerPostInit(function(player)
+		local maprevealable = player.components.maprevealable
+		if maprevealable then
+			if maprevealable.task ~= nil then
+				maprevealable.task:Cancel()
+				maprevealable.task = nil
+			end
+			maprevealable:StartRevealing()
+		else
+			print("[global position (CompleteSync)] Why? maprevealable is nil")
+		end
+	end)
+end
 -- ************************ end of code for debug the maprevealer ************************
 
 -- ************************ code for sharing the map from mapspotrevealer ************************

@@ -39,7 +39,7 @@ This mod is committed to solving this problem.
 ]]
 
 author = "clearlove, rezecib, Sarcen"
-version = "2.3.7"
+version = "2.3.8"
 
 api_version = 10
 
@@ -147,6 +147,16 @@ configuration_options = CH and
 		hover = "当玩家移动过快，跟随玩家的伯尼或者皮弗娄牛会在地图上留下残影，开启本选项来消除残影",
 		options =	{
 						{description = "启用", data = true, hover="注意，开启本选项后将不再显示视野范围外的牛的图标，但增加了牛铃的地图图标以便玩家寻找牛"},
+						{description = "禁用", data = false},
+					},
+		default = true,
+	},
+	{
+		name = "GLOBAL_COURIER",
+		label = "沃尔特全局运送",
+		hover = "让沃尔特给玩家运送物品时无需装备指南针",
+		options =	{
+						{description = "启用", data = true},
 						{description = "禁用", data = false},
 					},
 		default = true,
@@ -277,6 +287,16 @@ configuration_options = CH and
 		name = "REMOVE_GHOST_ICONS",
 		label = "Remove Ghost Icons",
 		hover = "When the player moves too fast, the Bernie or Beefalo following the player will leave ghost icons on the map. Enable this option to remove them",
+		options =	{
+						{description = "Enabled", data = true},
+						{description = "Disabled", data = false},
+					},
+		default = true,
+	},
+	{
+		name = "GLOBAL_COURIER",
+		label = "Courier w/o compass",
+		hover = "Allow Walter to deliver items to players without equipping a compass.",
 		options =	{
 						{description = "Enabled", data = true},
 						{description = "Disabled", data = false},
