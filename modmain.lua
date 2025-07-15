@@ -64,6 +64,7 @@ local NEEDCHARCOAL = FIREOPTIONS == 2
 local SHOWFIREICONS = GetModConfigData("SHOWFIREICONS")
 local ENABLEPINGS = GetModConfigData("ENABLEPINGS")
 local GLOBAL_COURIER = GetModConfigData("GLOBAL_COURIER")
+local USE_OPTIMIZER = GetModConfigData("use_optimizer")
 local valid_ping_actions = {}
 if ENABLEPINGS then --Only request loading of ping assets if pings are enabled
 	table.insert(PrefabFiles, "pings")
@@ -194,7 +195,9 @@ end
 
 -- ************************ add maprecorder to world as a buffer ************************
 AddPrefabPostInit("world", function(inst)
-    inst:AddComponent("maprevealoptimizer")
+    if USE_OPTIMIZER then
+        inst:AddComponent("maprevealoptimizer")
+    end
     -- Copied from Global Positions Remapped
     -- Fix to account for this not being a consumable item.
     inst:AddComponent("maprecorder")
@@ -494,24 +497,27 @@ AddComponentPostInit("maprevealer", function(inst)
 			return -- Wait until the player client is ready and has received the world size info.
 		end
 
-		local x, y, z = self.inst.Transform:GetWorldPosition()
-		local optimizer = GLOBAL.TheWorld.components.maprevealoptimizer
-		
-		-- If the optimizer exists and says the reveal is not necessary, skip it.
-		if optimizer and not optimizer:IsNecessary(x, z) then
-			print("[global position (CompleteSync)] RevealMapToPlayer is not necessary")
-			return
-		else
-			print("[global position (CompleteSync)] RevealMapToPlayer is necessary")
+		if USE_OPTIMIZER then
+			local x, y, z = self.inst.Transform:GetWorldPosition()
+			local optimizer = GLOBAL.TheWorld.components.maprevealoptimizer
+			
+			-- If the optimizer exists and says the reveal is not necessary, skip it.
+			if optimizer and not optimizer:IsNecessary(x, z) then
+				return
+			end
 		end
 
         if player.player_classified ~= nil and player.client_is_ready then
+			local x, y, z = self.inst.Transform:GetWorldPosition()
 			-- Reveal the area first.
 			player.player_classified.MapExplorer:RevealArea(x, y, z)
 			
 			-- Then, if the optimizer exists, mark this area as revealed.
-			if optimizer then
-				optimizer:MarkRevealed(x, z)
+			if USE_OPTIMIZER then
+				local optimizer = GLOBAL.TheWorld.components.maprevealoptimizer
+				if optimizer then
+					optimizer:MarkRevealed(x, z)
+				end
 			end
         end
     end

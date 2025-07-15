@@ -7,12 +7,10 @@ local MapRevealOptimizer = Class(function(self, inst)
 end)
 
 function MapRevealOptimizer:Initialize()
-    print("[global position (CompleteSync)] MapRevealOptimizer:Initialize")
     -- Prevent re-initialization
     -- if self.grid_width then return end
 
     if TheWorld.Map then
-        print("[global position (CompleteSync)] MapRevealOptimizer:Initialize: TheWorld.Map")
         local map_width, map_height = TheWorld.Map:GetWorldSize()
         -- Tile size is 4x4 units.
         self.world_width_units = map_width * TILE_SCALE
@@ -29,26 +27,18 @@ function MapRevealOptimizer:Initialize()
     
     -- Initialize grid only if it wasn't loaded from a save
     if self.revealed_grid == nil then
-        print("[global position (CompleteSync)] MapRevealOptimizer:Initialize: self.revealed_grid is nil, set to {}")
         self.revealed_grid = {}
-    else
-        print("[global position (CompleteSync)] MapRevealOptimizer:Initialize: self.revealed_grid is not nil")
     end
 end
 
 
 
 function MapRevealOptimizer:OnLoad(data)
-    print("[global position (CompleteSync)] MapRevealOptimizer:OnLoad")
     if data and data.revealed_grid then
-        print("[global position (CompleteSync)] MapRevealOptimizer:OnLoad: data is not nil")
         self.revealed_grid = data.revealed_grid
-    else
-        print("[global position (CompleteSync)] MapRevealOptimizer:OnLoad: data is nil")
     end
 end
 function MapRevealOptimizer:OnSave()
-    print("[global position (CompleteSync)] MapRevealOptimizer:OnSave")
     return {
         revealed_grid = self.revealed_grid
     }
@@ -67,7 +57,6 @@ function MapRevealOptimizer:MarkRevealed(wx, wz)
     if not self.grid_width then return end
 
     local gx, gz = self:WorldToGrid(wx, wz)
-    print("[global position (CompleteSync)] MapRevealOptimizer:MarkRevealed: gx, gz = ", gx, gz)
     if gx then
         if not self.revealed_grid[gx] then
             self.revealed_grid[gx] = {}
@@ -82,7 +71,6 @@ function MapRevealOptimizer:IsNecessary(wx, wz)
     if not self.grid_width then return true end
 
     local gx, gz = self:WorldToGrid(wx, wz)
-    print("[global position (CompleteSync)] MapRevealOptimizer:IsNecessary: gx, gz = ", gx, gz)
     if gx and self.revealed_grid[gx] and self.revealed_grid[gx][gz] then
         return false -- The grid cell for this center point has been revealed before.
     end

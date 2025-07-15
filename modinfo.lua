@@ -39,7 +39,7 @@ This mod is committed to solving this problem.
 ]]
 
 author = "clearlove, rezecib, Sarcen"
-version = "2.3.9"
+version = "2.4.1"
 
 api_version = 10
 
@@ -204,6 +204,16 @@ configuration_options = CH and
 		default = true,
 	},
 	{
+		name = "use_optimizer",
+		label = "快速共享地图",
+		hover = "启用此项可通过跳过冗余的地图揭示来降低CPU占用。这会停止更新玩家周围的玩家或物体的图标。",
+		options = {
+			{description = "禁用", data = false},
+			{description = "启用", data = true},
+		},
+		default = false,
+	},
+	{
         name = "lang",
         label = "语言",
         hover = "选择你想要使用的语言",
@@ -344,6 +354,16 @@ configuration_options = CH and
 						{description = "Disabled", data = false},
 					},
 		default = true,
+	},
+	{
+		name = "use_optimizer",
+		label = "Quick Map share",
+		hover = "Enable this to reduce CPU usage by skipping some redundant map reveals. This will stop the update of icons around players.",
+		options = {
+			{description = "Disabled", data = false},
+			{description = "Enabled", data = true},
+		},
+		default = false,
 	},
 	{
         name = "lang",
