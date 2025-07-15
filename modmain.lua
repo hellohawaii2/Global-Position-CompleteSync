@@ -489,6 +489,10 @@ end)
 
 AddComponentPostInit("maprevealer", function(inst)
     inst.RevealMapToPlayer = function(self, player)
+		if player._PostActivateHandshakeState_Server ~= GLOBAL.POSTACTIVATEHANDSHAKE.READY then
+			return -- Wait until the player client is ready and has received the world size info.
+		end
+
         if player.player_classified ~= nil then
             if player.client_is_ready then
                 player.player_classified.MapExplorer:RevealArea(self.inst.Transform:GetWorldPosition())
