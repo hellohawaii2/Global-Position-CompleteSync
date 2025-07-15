@@ -194,6 +194,7 @@ end
 
 -- ************************ add maprecorder to world as a buffer ************************
 AddPrefabPostInit("world", function(inst)
+    inst:AddComponent("maprevealoptimizer")
     -- Copied from Global Positions Remapped
     -- Fix to account for this not being a consumable item.
     inst:AddComponent("maprecorder")
@@ -493,10 +494,25 @@ AddComponentPostInit("maprevealer", function(inst)
 			return -- Wait until the player client is ready and has received the world size info.
 		end
 
-        if player.player_classified ~= nil then
-            if player.client_is_ready then
-                player.player_classified.MapExplorer:RevealArea(self.inst.Transform:GetWorldPosition())
-            end
+		local x, y, z = self.inst.Transform:GetWorldPosition()
+		local optimizer = GLOBAL.TheWorld.components.maprevealoptimizer
+		
+		-- If the optimizer exists and says the reveal is not necessary, skip it.
+		if optimizer and not optimizer:IsNecessary(x, z) then
+			print("[global position (CompleteSync)] RevealMapToPlayer is not necessary")
+			return
+		else
+			print("[global position (CompleteSync)] RevealMapToPlayer is necessary")
+		end
+
+        if player.player_classified ~= nil and player.client_is_ready then
+			-- Reveal the area first.
+			player.player_classified.MapExplorer:RevealArea(x, y, z)
+			
+			-- Then, if the optimizer exists, mark this area as revealed.
+			if optimizer then
+				optimizer:MarkRevealed(x, z)
+			end
         end
     end
 end)
