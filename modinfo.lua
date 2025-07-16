@@ -39,7 +39,7 @@ This mod is committed to solving this problem.
 ]]
 
 author = "clearlove, rezecib, Sarcen"
-version = "2.4.1"
+version = "2.4.3"
 
 api_version = 10
 
@@ -153,8 +153,8 @@ configuration_options = CH and
 	},
 	{
 		name = "GLOBAL_COURIER",
-		label = "沃尔特全局运送",
-		hover = "让沃尔特给玩家运送物品时无需装备指南针",
+		label = "自带月眼效果",
+		hover = "开启后，沃尔特给玩家运送物品时无需装备指南针，且让小恶魔可以直接跳跃到船上的队友附近",
 		options =	{
 						{description = "启用", data = true},
 						{description = "禁用", data = false},
@@ -305,8 +305,8 @@ configuration_options = CH and
 	},
 	{
 		name = "GLOBAL_COURIER",
-		label = "Courier w/o compass",
-		hover = "Allow Walter to deliver items to players without equipping a compass.",
+		label = "Ocuvigil effect",
+		hover = "Allow Walter to deliver items to players without equipping a compass, and allow the Wortox to jump to the player's location on the ship.",
 		options =	{
 						{description = "Enabled", data = true},
 						{description = "Disabled", data = false},
