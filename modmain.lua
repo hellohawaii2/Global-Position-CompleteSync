@@ -491,37 +491,37 @@ end)
 
 -- ************************ code for debug the maprevealer ************************
 
-AddComponentPostInit("maprevealer", function(inst)
-    inst.RevealMapToPlayer = function(self, player)
-		if player._PostActivateHandshakeState_Server ~= GLOBAL.POSTACTIVATEHANDSHAKE.READY then
-			return -- Wait until the player client is ready and has received the world size info.
-		end
+-- AddComponentPostInit("maprevealer", function(inst)
+--     inst.RevealMapToPlayer = function(self, player)
+-- 		if player._PostActivateHandshakeState_Server ~= GLOBAL.POSTACTIVATEHANDSHAKE.READY then
+-- 			return -- Wait until the player client is ready and has received the world size info.
+-- 		end
 
-		if USE_OPTIMIZER then
-			local x, y, z = self.inst.Transform:GetWorldPosition()
-			local optimizer = GLOBAL.TheWorld.components.maprevealoptimizer
+-- 		if USE_OPTIMIZER then
+-- 			local x, y, z = self.inst.Transform:GetWorldPosition()
+-- 			local optimizer = GLOBAL.TheWorld.components.maprevealoptimizer
 			
-			-- If the optimizer exists and says the reveal is not necessary, skip it.
-			if optimizer and not optimizer:IsNecessary(x, z) then
-				return
-			end
-		end
+-- 			-- If the optimizer exists and says the reveal is not necessary, skip it.
+-- 			if optimizer and not optimizer:IsNecessary(x, z) then
+-- 				return
+-- 			end
+-- 		end
 
-        if player.player_classified ~= nil and player.client_is_ready then
-			local x, y, z = self.inst.Transform:GetWorldPosition()
-			-- Reveal the area first.
-			player.player_classified.MapExplorer:RevealArea(x, y, z)
+--         if player.player_classified ~= nil and player.client_is_ready then
+-- 			local x, y, z = self.inst.Transform:GetWorldPosition()
+-- 			-- Reveal the area first.
+-- 			player.player_classified.MapExplorer:RevealArea(x, y, z)
 			
-			-- Then, if the optimizer exists, mark this area as revealed.
-			if USE_OPTIMIZER then
-				local optimizer = GLOBAL.TheWorld.components.maprevealoptimizer
-				if optimizer then
-					optimizer:MarkRevealed(x, z)
-				end
-			end
-        end
-    end
-end)
+-- 			-- Then, if the optimizer exists, mark this area as revealed.
+-- 			if USE_OPTIMIZER then
+-- 				local optimizer = GLOBAL.TheWorld.components.maprevealoptimizer
+-- 				if optimizer then
+-- 					optimizer:MarkRevealed(x, z)
+-- 				end
+-- 			end
+--         end
+--     end
+-- end)
 
 if GLOBAL_COURIER then
 	AddPlayerPostInit(function(player)
