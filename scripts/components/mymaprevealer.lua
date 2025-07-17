@@ -65,17 +65,20 @@ function MyMapRevealer:Stop()
 end
 
 function MyMapRevealer:RevealMapToPlayer(player)
-    if player._PostActivateHandshakeState_Server ~= GLOBAL.POSTACTIVATEHANDSHAKE.READY then
+    if player._PostActivateHandshakeState_Server ~= POSTACTIVATEHANDSHAKE.READY then
         return -- Wait until the player client is ready and has received the world size info.
     end
 
-    if USE_OPTIMIZER then
+    if _GLOBALPOSITIONS_COMPLETESYNC_USE_OPTIMIZER then
         local x, y, z = self.inst.Transform:GetWorldPosition()
-        local optimizer = GLOBAL.TheWorld.components.maprevealoptimizer
+        local optimizer = TheWorld.components.maprevealoptimizer
         
         -- If the optimizer exists and says the reveal is not necessary, skip it.
         if optimizer and not optimizer:IsNecessary(x, z) then
+            print("[global position (CompleteSync)] MyMapRevealer:RevealMapToPlayer: gx, gz = ", x, z, "is not necessary")
             return
+        else
+            print("[global position (CompleteSync)] MyMapRevealer:RevealMapToPlayer: gx, gz = ", x, z, "is necessary")
         end
     end
 
@@ -85,8 +88,8 @@ function MyMapRevealer:RevealMapToPlayer(player)
         player.player_classified.MapExplorer:RevealArea(x, y, z)
         
         -- Then, if the optimizer exists, mark this area as revealed.
-        if USE_OPTIMIZER then
-            local optimizer = GLOBAL.TheWorld.components.maprevealoptimizer
+        if _GLOBALPOSITIONS_COMPLETESYNC_USE_OPTIMIZER then
+            local optimizer = TheWorld.components.maprevealoptimizer
             if optimizer then
                 optimizer:MarkRevealed(x, z)
             end

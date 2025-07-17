@@ -1,37 +1,11 @@
 local MapRevealOptimizer = Class(function(self, inst)
     self.inst = inst
     self.grid_size = 8
-    
-    -- Defer initialization until the map is ready.
-    self.inst:DoTaskInTime(0, function() self:Initialize() end)
+    self.revealed_grid = {} -- 直接初始化
 end)
 
-function MapRevealOptimizer:Initialize()
-    -- Prevent re-initialization
-    -- if self.grid_width then return end
-
-    if TheWorld.Map then
-        local map_width, map_height = TheWorld.Map:GetWorldSize()
-        -- Tile size is 4x4 units.
-        self.world_width_units = map_width * TILE_SCALE
-        self.world_height_units = map_height * TILE_SCALE
-
-        -- Grid dimensions
-        self.grid_width = math.ceil(self.world_width_units / self.grid_size)
-        self.grid_height = math.ceil(self.world_height_units / self.grid_size)
-
-        -- World coordinates are centered around (0,0), so we need an offset for array indices.
-        self.offset_x = self.world_width_units / 2
-        self.offset_z = self.world_height_units / 2
-    end
-    
-    -- Initialize grid only if it wasn't loaded from a save
-    if self.revealed_grid == nil then
-        self.revealed_grid = {}
-    end
-end
-
-
+-- Initialize函数不再需要，因为我们不再依赖于地图加载
+-- OnLoad 和 OnSave 保持不变，它们能正确地保存和加载新的表结构
 
 function MapRevealOptimizer:OnLoad(data)
     if data and data.revealed_grid then
@@ -44,38 +18,29 @@ function MapRevealOptimizer:OnSave()
     }
 end
 
-function MapRevealOptimizer:WorldToGrid(wx, wz)
-    if not self.offset_x then return nil, nil end
-    local gx = math.floor((wx + self.offset_x) / self.grid_size) + 1
-    local gz = math.floor((wz + self.offset_z) / self.grid_size) + 1
-    return gx, gz
-end
+-- 不再需要WorldToGrid函数，可以直接在需要的地方计算
 
--- This should be called after a map area has been successfully revealed.
 function MapRevealOptimizer:MarkRevealed(wx, wz)
-    -- self:Initialize() -- Ensure component is initialized
-    if not self.grid_width then return end
-
-    local gx, gz = self:WorldToGrid(wx, wz)
-    if gx then
-        if not self.revealed_grid[gx] then
-            self.revealed_grid[gx] = {}
-        end
-        self.revealed_grid[gx][gz] = true
-    end
+    local gx = math.floor(wx / self.grid_size)
+    local gz = math.floor(wz / self.grid_size)
+    local key = gx..","..gz -- 创建唯一的字符串键
+    print("[global position (CompleteSync)] MapRevealOptimizer:MarkRevealed: gx, gz = ", gx, gz)
+    self.revealed_grid[key] = true
 end
 
--- Check if revealing a circular area is necessary.
 function MapRevealOptimizer:IsNecessary(wx, wz)
-    -- self:Initialize() -- Ensure component is initialized
-    if not self.grid_width then return true end
-
-    local gx, gz = self:WorldToGrid(wx, wz)
-    if gx and self.revealed_grid[gx] and self.revealed_grid[gx][gz] then
-        return false -- The grid cell for this center point has been revealed before.
+    local gx = math.floor(wx / self.grid_size)
+    local gz = math.floor(wz / self.grid_size)
+    local key = gx..","..gz -- 创建相同的键来检查
+    
+    -- 检查这个键是否存在即可
+    if self.revealed_grid[key] then
+        print("[global position (CompleteSync)] MapRevealOptimizer:IsNecessary: gx, gz = ", gx, gz, "is already revealed")
+        return false 
     end
 
-    return true -- It's a new grid cell, so the reveal is necessary.
+    print("[global position (CompleteSync)] MapRevealOptimizer:IsNecessary: gx, gz = ", gx, gz, "is not revealed")
+    return true
 end
 
 return MapRevealOptimizer 
