@@ -65,6 +65,8 @@ local SHOWFIREICONS = GetModConfigData("SHOWFIREICONS")
 local ENABLEPINGS = GetModConfigData("ENABLEPINGS")
 local GLOBAL_COURIER = GetModConfigData("GLOBAL_COURIER")
 local USE_OPTIMIZER = GetModConfigData("use_optimizer")
+local DISABLE_FOGREVEALER = GetModConfigData("disable_fogrevealer")
+GLOBAL._GLOBALPOSITIONS_COMPLETESYNC_DISABLE_FOGREVEALER = DISABLE_FOGREVEALER
 local valid_ping_actions = {}
 if ENABLEPINGS then --Only request loading of ping assets if pings are enabled
 	table.insert(PrefabFiles, "pings")

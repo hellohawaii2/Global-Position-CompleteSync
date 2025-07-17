@@ -39,7 +39,7 @@ This mod is committed to solving this problem.
 ]]
 
 author = "clearlove, rezecib, Sarcen"
-version = "2.4.3"
+version = "2.4.5"
 
 api_version = 10
 
@@ -214,6 +214,16 @@ configuration_options = CH and
 		default = false,
 	},
 	{
+		name = "disable_fogrevealer",
+		label = "禁用fogrevealer",
+		hover = "禁用fogrevealer功能，有可能可以降低CPU消耗。",
+		options = {
+			{description = "禁用", data = false},
+			{description = "启用", data = true},
+		},
+		default = false,
+	},
+	{
         name = "lang",
         label = "语言",
         hover = "选择你想要使用的语言",
@@ -359,6 +369,16 @@ configuration_options = CH and
 		name = "use_optimizer",
 		label = "Quick Map share",
 		hover = "Enable this to reduce CPU usage by skipping some redundant map reveals. This will stop the update of icons around players.",
+		options = {
+			{description = "Disabled", data = false},
+			{description = "Enabled", data = true},
+		},
+		default = false,
+	},
+	{
+		name = "disable_fogrevealer",
+		label = "Disable Fog Revealer",
+		hover = "Disable the fog revealer feature, which may reduce CPU usage.",
 		options = {
 			{description = "Disabled", data = false},
 			{description = "Enabled", data = true},
