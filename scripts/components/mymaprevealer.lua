@@ -51,14 +51,18 @@ end
 
 function MyMapRevealer:Start(delay)
     if self.task == nil then
-        self.inst:AddTag("maprevealer")
+        if not _GLOBALPOSITIONS_COMPLETESYNC_REMOVE_MAPREVEALER_TAG then
+            self.inst:AddTag("maprevealer")
+        end
         self.task = self.inst:DoTaskInTime(delay or math.random() * .5, OnStart, self)
     end
 end
 
 function MyMapRevealer:Stop()
     if self.task ~= nil then
-        self.inst:RemoveTag("maprevealer")
+        if not _GLOBALPOSITIONS_COMPLETESYNC_REMOVE_MAPREVEALER_TAG then
+            self.inst:RemoveTag("maprevealer")
+        end
         self.task:Cancel()
         self.task = nil
     end

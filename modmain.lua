@@ -68,6 +68,8 @@ local USE_OPTIMIZER = GetModConfigData("use_optimizer")
 local DISABLE_FOGREVEALER = GetModConfigData("disable_fogrevealer")
 GLOBAL._GLOBALPOSITIONS_COMPLETESYNC_DISABLE_FOGREVEALER = DISABLE_FOGREVEALER
 GLOBAL._GLOBALPOSITIONS_COMPLETESYNC_USE_OPTIMIZER = USE_OPTIMIZER
+local REMOVE_MAPREVEALER_TAG = GetModConfigData("remove_maprevealer_tag")
+GLOBAL._GLOBALPOSITIONS_COMPLETESYNC_REMOVE_MAPREVEALER_TAG = REMOVE_MAPREVEALER_TAG
 local valid_ping_actions = {}
 if ENABLEPINGS then --Only request loading of ping assets if pings are enabled
 	table.insert(PrefabFiles, "pings")

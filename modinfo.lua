@@ -206,7 +206,7 @@ configuration_options = CH and
 	{
 		name = "use_optimizer",
 		label = "快速共享地图",
-		hover = "启用此项可通过跳过冗余的地图揭示来降低CPU占用。这会停止更新玩家周围的玩家或物体的图标。",
+		hover = "启用此项可通过跳过冗余的地图揭示来降低CPU占用。",
 		options = {
 			{description = "禁用", data = false},
 			{description = "启用", data = true},
@@ -217,6 +217,16 @@ configuration_options = CH and
 		name = "disable_fogrevealer",
 		label = "禁用fogrevealer",
 		hover = "禁用fogrevealer功能，有可能可以降低CPU消耗。",
+		options = {
+			{description = "禁用", data = false},
+			{description = "启用", data = true},
+		},
+		default = false,
+	},
+	{
+		name = "remove_maprevealer_tag",
+		label = "移除maprevealer标签",
+		hover = "移除maprevealer标签，有可能可以降低CPU消耗。这会停止更新玩家周围的玩家或物体的图标。",
 		options = {
 			{description = "禁用", data = false},
 			{description = "启用", data = true},
@@ -368,7 +378,7 @@ configuration_options = CH and
 	{
 		name = "use_optimizer",
 		label = "Quick Map share",
-		hover = "Enable this to reduce CPU usage by skipping some redundant map reveals. This will stop the update of icons around players.",
+		hover = "Enable this to reduce CPU usage by skipping some redundant map reveals.",
 		options = {
 			{description = "Disabled", data = false},
 			{description = "Enabled", data = true},
@@ -379,6 +389,16 @@ configuration_options = CH and
 		name = "disable_fogrevealer",
 		label = "Disable Fog Revealer",
 		hover = "Disable the fog revealer feature, which may reduce CPU usage.",
+		options = {
+			{description = "Disabled", data = false},
+			{description = "Enabled", data = true},
+		},
+		default = false,
+	},
+	{
+		name = "remove_maprevealer_tag",
+		label = "Remove maprevealer tag",
+		hover = "Remove the maprevealer tag, which may reduce CPU usage. This will stop the update of icons around players.",
 		options = {
 			{description = "Disabled", data = false},
 			{description = "Enabled", data = true},
