@@ -79,10 +79,10 @@ function MyMapRevealer:RevealMapToPlayer(player)
         
         -- If the optimizer exists and says the reveal is not necessary, skip it.
         if optimizer and not optimizer:IsNecessary(x, z) then
-            print("[global position (CompleteSync)] MyMapRevealer:RevealMapToPlayer: gx, gz = ", x, z, "is not necessary")
+            -- print("[global position (CompleteSync)] MyMapRevealer:RevealMapToPlayer: gx, gz = ", x, z, "is not necessary")
             return
         else
-            print("[global position (CompleteSync)] MyMapRevealer:RevealMapToPlayer: gx, gz = ", x, z, "is necessary")
+            -- print("[global position (CompleteSync)] MyMapRevealer:RevealMapToPlayer: gx, gz = ", x, z, "is necessary")
         end
     end
 

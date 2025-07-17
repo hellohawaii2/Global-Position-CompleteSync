@@ -154,7 +154,7 @@ end)
 
 -- ************************ Try to accelerate ************************ 
 local is_dedicated = GLOBAL.TheNet:IsDedicated()
-local STOPSAVEMAPEXPLORER = GetModConfigData("STOPSAVEMAPEXPLORER") and is_dedicated
+local STOPSAVEMAPEXPLORER = is_dedicated
 if STOPSAVEMAPEXPLORER then
 require("networking")
 GLOBAL.SerializeUserSession = function (player, isnewspawn)
