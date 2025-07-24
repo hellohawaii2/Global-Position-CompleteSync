@@ -1108,7 +1108,7 @@ function TargetIndicator:OnUpdate()
 	else
 		-- If this gets spammed in logs then there's a real problem
 		-- Otherwise this is just a hacky fix to a rare and temporary scenario
-		print("GlobalPositions warning: Invalid GPC")
+		-- print("GlobalPositions warning: Invalid GPC")
 	end
 end
 
