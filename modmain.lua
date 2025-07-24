@@ -64,6 +64,12 @@ local NEEDCHARCOAL = FIREOPTIONS == 2
 local SHOWFIREICONS = GetModConfigData("SHOWFIREICONS")
 local ENABLEPINGS = GetModConfigData("ENABLEPINGS")
 local GLOBAL_COURIER = GetModConfigData("GLOBAL_COURIER")
+local USE_OPTIMIZER = GetModConfigData("use_optimizer")
+local DISABLE_FOGREVEALER = GetModConfigData("disable_fogrevealer")
+GLOBAL._GLOBALPOSITIONS_COMPLETESYNC_DISABLE_FOGREVEALER = DISABLE_FOGREVEALER
+GLOBAL._GLOBALPOSITIONS_COMPLETESYNC_USE_OPTIMIZER = USE_OPTIMIZER
+local REMOVE_MAPREVEALER_TAG = GetModConfigData("remove_maprevealer_tag")
+GLOBAL._GLOBALPOSITIONS_COMPLETESYNC_REMOVE_MAPREVEALER_TAG = REMOVE_MAPREVEALER_TAG
 local valid_ping_actions = {}
 if ENABLEPINGS then --Only request loading of ping assets if pings are enabled
 	table.insert(PrefabFiles, "pings")
@@ -148,7 +154,7 @@ end)
 
 -- ************************ Try to accelerate ************************ 
 local is_dedicated = GLOBAL.TheNet:IsDedicated()
-local STOPSAVEMAPEXPLORER = GetModConfigData("STOPSAVEMAPEXPLORER") and is_dedicated
+local STOPSAVEMAPEXPLORER = is_dedicated
 if STOPSAVEMAPEXPLORER then
 require("networking")
 GLOBAL.SerializeUserSession = function (player, isnewspawn)
@@ -194,6 +200,9 @@ end
 
 -- ************************ add maprecorder to world as a buffer ************************
 AddPrefabPostInit("world", function(inst)
+    if USE_OPTIMIZER then
+        inst:AddComponent("maprevealoptimizer")
+    end
     -- Copied from Global Positions Remapped
     -- Fix to account for this not being a consumable item.
     inst:AddComponent("maprecorder")
@@ -487,19 +496,37 @@ end)
 
 -- ************************ code for debug the maprevealer ************************
 
-AddComponentPostInit("maprevealer", function(inst)
-    inst.RevealMapToPlayer = function(self, player)
-		if player._PostActivateHandshakeState_Server ~= GLOBAL.POSTACTIVATEHANDSHAKE.READY then
-			return -- Wait until the player client is ready and has received the world size info.
-		end
+-- AddComponentPostInit("maprevealer", function(inst)
+--     inst.RevealMapToPlayer = function(self, player)
+-- 		if player._PostActivateHandshakeState_Server ~= GLOBAL.POSTACTIVATEHANDSHAKE.READY then
+-- 			return -- Wait until the player client is ready and has received the world size info.
+-- 		end
 
-        if player.player_classified ~= nil then
-            if player.client_is_ready then
-                player.player_classified.MapExplorer:RevealArea(self.inst.Transform:GetWorldPosition())
-            end
-        end
-    end
-end)
+-- 		if USE_OPTIMIZER then
+-- 			local x, y, z = self.inst.Transform:GetWorldPosition()
+-- 			local optimizer = GLOBAL.TheWorld.components.maprevealoptimizer
+			
+-- 			-- If the optimizer exists and says the reveal is not necessary, skip it.
+-- 			if optimizer and not optimizer:IsNecessary(x, z) then
+-- 				return
+-- 			end
+-- 		end
+
+--         if player.player_classified ~= nil and player.client_is_ready then
+-- 			local x, y, z = self.inst.Transform:GetWorldPosition()
+-- 			-- Reveal the area first.
+-- 			player.player_classified.MapExplorer:RevealArea(x, y, z)
+			
+-- 			-- Then, if the optimizer exists, mark this area as revealed.
+-- 			if USE_OPTIMIZER then
+-- 				local optimizer = GLOBAL.TheWorld.components.maprevealoptimizer
+-- 				if optimizer then
+-- 					optimizer:MarkRevealed(x, z)
+-- 				end
+-- 			end
+--         end
+--     end
+-- end)
 
 if GLOBAL_COURIER then
 	AddPlayerPostInit(function(player)
@@ -1081,7 +1108,7 @@ function TargetIndicator:OnUpdate()
 	else
 		-- If this gets spammed in logs then there's a real problem
 		-- Otherwise this is just a hacky fix to a rare and temporary scenario
-		print("GlobalPositions warning: Invalid GPC")
+		-- print("GlobalPositions warning: Invalid GPC")
 	end
 end
 

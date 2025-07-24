@@ -39,7 +39,7 @@ This mod is committed to solving this problem.
 ]]
 
 author = "clearlove, rezecib, Sarcen"
-version = "2.3.9"
+version = "2.4.0"
 
 api_version = 10
 
@@ -161,16 +161,16 @@ configuration_options = CH and
 					},
 		default = true,
 	},
-	{
-		name = "STOPSAVEMAPEXPLORER",
-		label = "减少卡顿",
-		hover = "实验性功能，尝试减少上下洞穴时的卡顿。通过修改人物存档来实现，我不确定这是否安全",
-		options =	{
-						{description = "启用", data = true},
-						-- {description = "禁用", data = false},
-					},
-		default = true,
-	},
+	-- {
+	-- 	name = "STOPSAVEMAPEXPLORER",
+	-- 	label = "减少卡顿",
+	-- 	hover = "实验性功能，尝试减少上下洞穴时的卡顿。通过修改人物存档来实现，我不确定这是否安全",
+	-- 	options =	{
+	-- 					{description = "启用", data = true},
+	-- 					-- {description = "禁用", data = false},
+	-- 				},
+	-- 	default = true,
+	-- },
 	{
 		name = "UPDADTEFREQUENCY",
 		label = "共享地图时间间隔",
@@ -215,6 +215,50 @@ configuration_options = CH and
         },
         default = "auto",
     },
+    {
+		name = "Space1",
+		label = CH and "  " or "  ",
+		options = {{description = "", data = 0}},
+		default = 0,
+		tags = {"ignore"},
+	},
+	{
+		name = "optimization_tile", -- avoid conflicts
+		label = "性能优化", 
+		options = {{description = "", data = 0}},
+		default = 0,
+		tags = {"ignore"},
+	},
+	{
+		name = "use_optimizer",
+		label = "快速共享地图",
+		hover = "启用此项可通过跳过冗余的地图揭示来降低CPU占用。",
+		options = {
+			{description = "禁用", data = false},
+			{description = "启用", data = true},
+		},
+		default = false,
+	},
+	{
+		name = "disable_fogrevealer",
+		label = "禁用fogrevealer",
+		hover = "禁用fogrevealer功能，有可能可以降低CPU消耗。这会导致小恶魔无法跳到船上队友的附近。",
+		options = {
+			{description = "禁用", data = false},
+			{description = "启用", data = true},
+		},
+		default = false,
+	},
+	{
+		name = "remove_maprevealer_tag",
+		label = "移除maprevealer标签",
+		hover = "移除maprevealer标签，有可能可以降低CPU消耗。但会停止更新玩家周围的玩家或物体的图标，可能导致图标错误",
+		options = {
+			{description = "禁用", data = false},
+			{description = "启用", data = true},
+		},
+		default = false,
+	},
 } or
 {
 	{
@@ -303,16 +347,16 @@ configuration_options = CH and
 					},
 		default = true,
 	},
-	{
-		name = "STOPSAVEMAPEXPLORER",
-		label = "Reduce Lag",
-		hover = "Experimental feature, trying to reduce lag when going up and down caves. It works by modifying the save files of characters, and I'm not sure if it's safe",
-		options =	{
-			{description = "Enabled", data = true},
-			{description = "Disabled", data = false},
-		},
-		default = false,
-	},
+	-- {
+	-- 	name = "STOPSAVEMAPEXPLORER",
+	-- 	label = "Reduce Lag",
+	-- 	hover = "Experimental feature, trying to reduce lag when going up and down caves. It works by modifying the save files of characters, and I'm not sure if it's safe",
+	-- 	options =	{
+	-- 		{description = "Enabled", data = true},
+	-- 		{description = "Disabled", data = false},
+	-- 	},
+	-- 	default = false,
+	-- },
 	{
 		name = "UPDADTEFREQUENCY",
 		label = "Share Map Interval",
@@ -357,4 +401,48 @@ configuration_options = CH and
         },
         default = "auto",
     },
+	{
+		name = "Space1",
+		label = CH and "  " or "  ",
+		options = {{description = "", data = 0}},
+		default = 0,
+		tags = {"ignore"},
+	},
+	{
+		name = "optimization_tile", -- avoid conflicts
+		label = "Optimization Options", 
+		options = {{description = "", data = 0}},
+		default = 0,
+		tags = {"ignore"},
+	},
+	{
+		name = "use_optimizer",
+		label = "Quick Map share",
+		hover = "Enable this to reduce CPU usage by skipping some redundant map reveals.",
+		options = {
+			{description = "Disabled", data = false},
+			{description = "Enabled", data = true},
+		},
+		default = false,
+	},
+	{
+		name = "disable_fogrevealer",
+		label = "Disable Fog Revealer",
+		hover = "Disable the fog revealer feature, which may reduce CPU usage. But this will prevent the Wortox from jumping to the player's location on the ship.",
+		options = {
+			{description = "Disabled", data = false},
+			{description = "Enabled", data = true},
+		},
+		default = false,
+	},
+	{
+		name = "remove_maprevealer_tag",
+		label = "Remove maprevealer tag",
+		hover = "Remove the maprevealer tag, which may reduce CPU usage. This will stop the update of icons around players, which may cause icons to be incorrect.",
+		options = {
+			{description = "Disabled", data = false},
+			{description = "Enabled", data = true},
+		},
+		default = false,
+	},
 }
