@@ -64,6 +64,7 @@ local NEEDCHARCOAL = FIREOPTIONS == 2
 local SHOWFIREICONS = GetModConfigData("SHOWFIREICONS")
 local ENABLEPINGS = GetModConfigData("ENABLEPINGS")
 local GLOBAL_COURIER = GetModConfigData("GLOBAL_COURIER")
+local GLOBAL_DELIVERY_DRONE = GetModConfigData("GLOBAL_DELIVERY_DRONE")
 local USE_OPTIMIZER = GetModConfigData("use_optimizer")
 local DISABLE_FOGREVEALER = GetModConfigData("disable_fogrevealer")
 GLOBAL._GLOBALPOSITIONS_COMPLETESYNC_DISABLE_FOGREVEALER = DISABLE_FOGREVEALER
@@ -622,6 +623,146 @@ AddComponentPostInit("mapspotrevealer", function(self)
 end)
 
 -- ************************ end of code for sharing the map from mapspotrevealer ************************
+
+-- ************************ code for sharing the map from wx78_drone_scout ************************
+AddPrefabPostInit("wx78_drone_scout", function(inst)
+	if not GLOBAL.TheWorld.ismastersim then
+		return
+	end
+
+	local mapdeliverable = inst.components.mapdeliverable
+	if mapdeliverable == nil then
+		return
+	end
+
+	local old_ondeliveryprogressfn = mapdeliverable.ondeliveryprogressfn
+	mapdeliverable:SetOnDeliveryProgressFn(function(inst, t, len, origin, dest)
+		if old_ondeliveryprogressfn ~= nil then
+			old_ondeliveryprogressfn(inst, t, len, origin, dest)
+		end
+
+		if not inst.scanning:value() then
+			return
+		end
+
+		local x, _, z = inst.Transform:GetWorldPosition()
+		for _, player in ipairs(GLOBAL.AllPlayers) do
+			if player ~= nil
+				and player:IsValid()
+				and player.player_classified ~= nil
+				and player.player_classified.MapExplorer ~= nil then
+				keep_trying_reveal(player, x, 0, z)
+			end
+		end
+	end)
+end)
+-- ************************ end of code for sharing the map from wx78_drone_scout ************************
+
+-- ************************ code for making delivery drones globally visible ************************
+if GLOBAL_DELIVERY_DRONE then
+	local function PatchDeliveryDroneTracking(inst)
+		if not GLOBAL.TheWorld.ismastersim then
+			return
+		end
+
+		local globaltrackingicon = inst.components.globaltrackingicon
+		if globaltrackingicon == nil then
+			return
+		end
+
+		globaltrackingicon.StartTracking = function(self, owner, name)
+			self.owner = owner
+
+			name = name or self.inst.prefab
+			local trackingicon = name.."_air.png"
+
+			if self.inst.MiniMapEntity then
+				self.inst.MiniMapEntity:SetEnabled(false)
+			end
+
+			if self.globalicon ~= nil and (not self.globalicon:IsValid() or self.globalicon.prefab ~= "globalmapicon") then
+				self.globalicon:Remove()
+				self.globalicon = nil
+			end
+
+			if self.globalicon_noproxy ~= nil and (not self.globalicon_noproxy:IsValid() or self.globalicon_noproxy.prefab ~= "globalmapicon_noproxy") then
+				self.globalicon_noproxy:Remove()
+				self.globalicon_noproxy = nil
+			end
+
+			if self.globalicon == nil then
+				self.globalicon = GLOBAL.SpawnPrefab("globalmapicon")
+				self.globalicon:TrackEntity(self.inst, nil, trackingicon)
+			else
+				self.globalicon.MiniMapEntity:SetIcon(trackingicon)
+			end
+			self.globalicon.MiniMapEntity:SetPriority(21)
+
+			-- globalmapicon only covers the proxy/far layer, so add a non-proxy icon for close-up visibility.
+			if self.globalicon_noproxy == nil then
+				self.globalicon_noproxy = GLOBAL.SpawnPrefab("globalmapicon_noproxy")
+				self.globalicon_noproxy:TrackEntity(self.inst, nil, trackingicon)
+			else
+				self.globalicon_noproxy.MiniMapEntity:SetIcon(trackingicon)
+			end
+			self.globalicon_noproxy.MiniMapEntity:SetPriority(21)
+
+			if self.revealableicon then
+				self.revealableicon:Remove()
+				self.revealableicon = nil
+			end
+
+			if self.inst.components.maprevealable ~= nil then
+				self.inst:RemoveComponent("maprevealable")
+			end
+		end
+
+		globaltrackingicon.StopTracking = function(self)
+			if self.inst.MiniMapEntity then
+				self.inst.MiniMapEntity:SetEnabled(true)
+			end
+
+			if self.globalicon then
+				self.globalicon:Remove()
+				self.globalicon = nil
+			end
+
+			if self.globalicon_noproxy then
+				self.globalicon_noproxy:Remove()
+				self.globalicon_noproxy = nil
+			end
+
+			if self.revealableicon then
+				self.revealableicon:Remove()
+				self.revealableicon = nil
+			end
+
+			if self.inst.components.maprevealable ~= nil then
+				self.inst:RemoveComponent("maprevealable")
+			end
+
+			if not self.inst:HasTag("flying") then
+				for _, player in ipairs(GLOBAL.AllPlayers) do
+					if player ~= nil
+						and player:IsValid()
+						and player.player_classified ~= nil
+						and player.player_classified.MapExplorer ~= nil then
+						player.player_classified.MapExplorer:RevealEntity(self.inst.entity)
+					end
+				end
+			end
+
+			self.owner = nil
+		end
+
+		globaltrackingicon.OnRemoveFromEntity = globaltrackingicon.StopTracking
+	end
+
+	AddPrefabPostInit("wx78_drone_delivery", PatchDeliveryDroneTracking)
+	AddPrefabPostInit("wx78_drone_delivery_small", PatchDeliveryDroneTracking)
+end
+
+-- ************************ code for making delivery drones globally visible ************************
 
 -- ************************ code for dealing with glitchy mapicon ************************
 local remove_ghost_icons = GetModConfigData("REMOVE_GHOST_ICONS")
@@ -1339,27 +1480,14 @@ AddClassPostConstruct("widgets/mapwidget", function(MapWidget)
 		pingwheel.inst.UITransform:SetScale(STARTSCALE, STARTSCALE, 1)
 	end
 
+	local OldMapWidgetOnUpdate = MapWidget.OnUpdate
 	function MapWidget:OnUpdate(dt)
 		if ENABLEPINGS then
 			pingwheel:OnUpdate()
 		end
 		if not self.shown or pingwheelup then return end
-		
-		-- Begin copy-pasted code (small edits to match modmain environment)
-		if GLOBAL.TheInput:IsControlPressed(GLOBAL.CONTROL_PRIMARY) then
-			local pos = GLOBAL.TheInput:GetScreenPosition()
-			if self.lastpos then
-				local scale = 0.25
-				local dx = scale * ( pos.x - self.lastpos.x )
-				local dy = scale * ( pos.y - self.lastpos.y )
-				self:Offset( dx, dy ) --#rezecib changed this so we can capture offsets
-			end
-			
-			self.lastpos = pos
-		else
-			self.lastpos = nil
-		end
-		-- End copy-pasted code
+
+		OldMapWidgetOnUpdate(self, dt)
 		
 		if SHOWPLAYERICONS then
 			local p = self:GetWorldMousePosition()

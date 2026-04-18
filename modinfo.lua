@@ -39,7 +39,7 @@ This mod is committed to solving this problem.
 ]]
 
 author = "clearlove, rezecib, Sarcen"
-version = "2.4.0"
+version = "2.4.4"
 
 api_version = 10
 
@@ -156,6 +156,16 @@ configuration_options = CH and
 		label = "沃尔特全局运送",
 		hover = "让沃尔特给玩家运送物品时无需装备指南针",
 		options =	{
+						{description = "启用", data = true},
+						{description = "禁用", data = false},
+					},
+		default = true,
+	},
+	{
+		name = "GLOBAL_DELIVERY_DRONE",
+		label = "运输机全局可见",
+		hover = "让WX-78运输机在运输过程中对所有玩家全局可见。",
+		options = {
 						{description = "启用", data = true},
 						{description = "禁用", data = false},
 					},
@@ -342,6 +352,16 @@ configuration_options = CH and
 		label = "Courier w/o compass",
 		hover = "Allow Walter to deliver items to players without equipping a compass.",
 		options =	{
+						{description = "Enabled", data = true},
+						{description = "Disabled", data = false},
+					},
+		default = true,
+	},
+	{
+		name = "GLOBAL_DELIVERY_DRONE",
+		label = "Global Delivery Drone",
+		hover = "Make WX-78 delivery drones globally visible while delivering.",
+		options = {
 						{description = "Enabled", data = true},
 						{description = "Disabled", data = false},
 					},
