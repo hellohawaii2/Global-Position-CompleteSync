@@ -39,7 +39,7 @@ This mod is committed to solving this problem.
 ]]
 
 author = "clearlove, rezecib, Sarcen"
-version = "2.4.4"
+version = "2.4.5"
 
 api_version = 10
 
@@ -259,16 +259,6 @@ configuration_options = CH and
 		},
 		default = false,
 	},
-	{
-		name = "remove_maprevealer_tag",
-		label = "移除maprevealer标签",
-		hover = "移除maprevealer标签，有可能可以降低CPU消耗。但会停止更新玩家周围的玩家或物体的图标，可能导致图标错误",
-		options = {
-			{description = "禁用", data = false},
-			{description = "启用", data = true},
-		},
-		default = false,
-	},
 } or
 {
 	{
@@ -449,16 +439,6 @@ configuration_options = CH and
 		name = "disable_fogrevealer",
 		label = "Disable Fog Revealer",
 		hover = "Disable the fog revealer feature, which may reduce CPU usage. But this will prevent the Wortox from jumping to the player's location on the ship.",
-		options = {
-			{description = "Disabled", data = false},
-			{description = "Enabled", data = true},
-		},
-		default = false,
-	},
-	{
-		name = "remove_maprevealer_tag",
-		label = "Remove maprevealer tag",
-		hover = "Remove the maprevealer tag, which may reduce CPU usage. This will stop the update of icons around players, which may cause icons to be incorrect.",
 		options = {
 			{description = "Disabled", data = false},
 			{description = "Enabled", data = true},

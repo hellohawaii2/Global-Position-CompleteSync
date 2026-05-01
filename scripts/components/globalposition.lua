@@ -33,11 +33,11 @@ local function AddGlobalIcon(inst, isplayer, classified)
 end
 
 local function AddMapRevealer(inst)
-	if not inst.components.mymaprevealer then
-		inst:AddComponent("mymaprevealer")
+	if not inst.components.maprevealer then
+		inst:AddComponent("maprevealer")
 	end
 	if _GLOBALPOSITIONS_COMPLETESYNC_UPDADTEFREQUENCY then
-		inst.components.mymaprevealer.revealperiod = _GLOBALPOSITIONS_COMPLETESYNC_UPDADTEFREQUENCY
+		inst.components.maprevealer.revealperiod = _GLOBALPOSITIONS_COMPLETESYNC_UPDADTEFREQUENCY
 	else
 		print("[global position (CompleteSync)] failed to set custom revealperiod")
 	end
@@ -110,7 +110,7 @@ function GlobalPosition:OnRemoveEntity()
 		self.inst.MiniMapEntity:SetEnabled(true)
 	end
 	
-	if self.inst.components.mymaprevealer then
+	if self.inst.components.maprevealer then
 		self:SetMapSharing(false)
 	end
 	
@@ -145,9 +145,9 @@ end
 
 function GlobalPosition:SetMapSharing(enabled)
 	if enabled then
-		self.inst.components.mymaprevealer:Start()
+		self.inst.components.maprevealer:Start()
 	else
-		self.inst.components.mymaprevealer:Stop()
+		self.inst.components.maprevealer:Stop()
 	end
 end
 

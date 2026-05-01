@@ -69,8 +69,6 @@ local USE_OPTIMIZER = GetModConfigData("use_optimizer")
 local DISABLE_FOGREVEALER = GetModConfigData("disable_fogrevealer")
 GLOBAL._GLOBALPOSITIONS_COMPLETESYNC_DISABLE_FOGREVEALER = DISABLE_FOGREVEALER
 GLOBAL._GLOBALPOSITIONS_COMPLETESYNC_USE_OPTIMIZER = USE_OPTIMIZER
-local REMOVE_MAPREVEALER_TAG = GetModConfigData("remove_maprevealer_tag")
-GLOBAL._GLOBALPOSITIONS_COMPLETESYNC_REMOVE_MAPREVEALER_TAG = REMOVE_MAPREVEALER_TAG
 local valid_ping_actions = {}
 if ENABLEPINGS then --Only request loading of ping assets if pings are enabled
 	table.insert(PrefabFiles, "pings")
@@ -544,6 +542,43 @@ if GLOBAL_COURIER then
 	end)
 end
 -- ************************ end of code for debug the maprevealer ************************
+
+-- ************************ code for patching the maprevealer ************************
+AddComponentPostInit("maprevealer", function(self)
+	self.RevealMapToPlayer = function(self, player)
+		if player._PostActivateHandshakeState_Server ~= GLOBAL.POSTACTIVATEHANDSHAKE.READY then
+			return -- Wait until the player client is ready and has received the world size info.
+		end
+
+		if _GLOBALPOSITIONS_COMPLETESYNC_USE_OPTIMIZER then
+			local x, y, z = self.inst.Transform:GetWorldPosition()
+			local optimizer = GLOBAL.TheWorld.components.maprevealoptimizer
+			
+			-- If the optimizer exists and says the reveal is not necessary, skip it.
+			if optimizer and not optimizer:IsNecessary(x, z) then
+				-- print("[global position (CompleteSync)] MyMapRevealer:RevealMapToPlayer: gx, gz = ", x, z, "is not necessary")
+				return
+			else
+				-- print("[global position (CompleteSync)] MyMapRevealer:RevealMapToPlayer: gx, gz = ", x, z, "is necessary")
+			end
+		end
+
+		if player.player_classified ~= nil and player.client_is_ready then
+			local x, y, z = self.inst.Transform:GetWorldPosition()
+			-- Reveal the area first.
+			player.player_classified.MapExplorer:RevealArea(x, y, z)
+			
+			-- Then, if the optimizer exists, mark this area as revealed.
+			if _GLOBALPOSITIONS_COMPLETESYNC_USE_OPTIMIZER then
+				local optimizer = GLOBAL.TheWorld.components.maprevealoptimizer
+				if optimizer then
+					optimizer:MarkRevealed(x, z)
+				end
+			end
+		end
+	end
+end)
+-- ************************ end of code for patching the maprevealer ************************
 
 -- ************************ code for sharing the map from mapspotrevealer ************************
 local keep_trying_reveal
