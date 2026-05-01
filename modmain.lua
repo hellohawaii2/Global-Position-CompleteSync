@@ -132,12 +132,7 @@ local function player2player_via_buffer(world, player_from, player_to)
     learn_from_buffer(world, player_to)
 end
 
-local function handleClientPlayerJoined(player)
-	print("[global position (CompleteSync)] before RPC, the player.client_is_ready is "..tostring(player.client_is_ready))
-	player.client_is_ready = true
-end
 local modname = "globalpositioncompletesync"
-AddModRPCHandler(modname, "ClientPlayerJoined", handleClientPlayerJoined)
 
 
 AddShardModRPCHandler(modname, "ShardIncreaseCounter", function()
@@ -272,7 +267,11 @@ AddPrefabPostInit("world", function(inst)
 			player.success_to_learn_map = false
             return
         end
-		if not player.client_is_ready then
+		if player == nil
+			or not player:IsValid()
+			or player._PostActivateHandshakeState_Server ~= GLOBAL.POSTACTIVATEHANDSHAKE.READY
+			or player.player_classified == nil
+			or player.player_classified.MapExplorer == nil then
 			print("[global position (CompleteSync)]Client is not ready, waiting")
 			-- local result, description = maprecorder:TeachMap(player)  -- I hope this can cause a merge error
 			maprecorder.inst.DoTaskInTime(maprecorder, 1, KeepTryingTeach, player, count)
@@ -398,19 +397,6 @@ AddPrefabPostInit("world", function(inst)
     inst:ListenForEvent("ms_playerjoined", OnMyPlayerJoined, GLOBAL.TheWorld)
 
 
-	local OnMyPlayerActivated = function(world, player)
-		print("[global position (CompleteSync)]Player activated")
-		if not GLOBAL.TheNet:GetIsServer() then
-			-- if player.userid == GLOBAL.ThePlayer.userid then
-			print("[global position (CompleteSync)] sending RPC")
-			SendModRPCToServer(GetModRPC(modname, "ClientPlayerJoined"))
-			-- end
-		else
-			print("[global position (CompleteSync)] server also got activated event, but do nothing.")
-		end
-	end
-	inst:ListenForEvent("playeractivated", OnMyPlayerActivated, GLOBAL.TheWorld)
-
     local OnMyPlayerDespawn = function(world, player)
 		print("[global position (CompleteSync)]Player despawned")
 		if not player.success_to_learn_map then
@@ -511,7 +497,7 @@ end)
 -- 			end
 -- 		end
 
---         if player.player_classified ~= nil and player.client_is_ready then
+--         if player.player_classified ~= nil and player.player_classified.MapExplorer ~= nil then
 -- 			local x, y, z = self.inst.Transform:GetWorldPosition()
 -- 			-- Reveal the area first.
 -- 			player.player_classified.MapExplorer:RevealArea(x, y, z)
@@ -563,7 +549,7 @@ AddComponentPostInit("maprevealer", function(self)
 			end
 		end
 
-		if player.player_classified ~= nil and player.client_is_ready then
+		if player.player_classified ~= nil and player.player_classified.MapExplorer ~= nil then
 			local x, y, z = self.inst.Transform:GetWorldPosition()
 			-- Reveal the area first.
 			player.player_classified.MapExplorer:RevealArea(x, y, z)
@@ -583,13 +569,19 @@ end)
 -- ************************ code for sharing the map from mapspotrevealer ************************
 local keep_trying_reveal
 keep_trying_reveal = function(player, x, y, z)
-	if player.client_is_ready then
+	if player ~= nil
+		and player:IsValid()
+		and player._PostActivateHandshakeState_Server == GLOBAL.POSTACTIVATEHANDSHAKE.READY
+		and player.player_classified ~= nil
+		and player.player_classified.MapExplorer ~= nil then
 		player.player_classified.MapExplorer:RevealArea(x, y, z, true, true)
-	else
-		print("player.client_is_ready is false before revealing in mapspotrevealer")
+	elseif player ~= nil and player:IsValid() then
+		print("player map explorer is not ready before revealing in mapspotrevealer")
 		player:DoTaskInTime(1, function()
 			keep_trying_reveal(player, x, y, z)
 		end)
+	else
+		print("player is invalid before revealing in mapspotrevealer")
 	end
 end
 AddComponentPostInit("mapspotrevealer", function(self)
